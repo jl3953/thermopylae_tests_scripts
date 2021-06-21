@@ -31,7 +31,7 @@ def build_client(client_node, commit_branch):
     async_server.build_client(client_node, commit_branch)
 
 
-def run_server(server_node, concurrency, log_dir, threshold):
+def run_server(server_node, concurrency, log_dir, threshold, write_log=True):
     server_url = server_node["ip"]
 
     cmd = "/root/cicada-engine/build/hotshard_gateway_server {0} {1}" \
@@ -42,9 +42,13 @@ def run_server(server_node, concurrency, log_dir, threshold):
     if not os.path.exists(log_fpath):
         os.makedirs(log_fpath)
 
-    cicada_log = os.path.join(log_fpath, "cicada_log.txt")
-    with open(cicada_log, "w") as f:
-        process = subprocess.Popen(shlex.split(ssh_wrapped_cmd), stdout=f)
+    if write_log:
+        cicada_log = os.path.join(log_fpath, "cicada_log.txt")
+        with open(cicada_log, "w") as f:
+            process = subprocess.Popen(shlex.split(ssh_wrapped_cmd), stdout=f)
+    else:
+        process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
+
     time.sleep(25)
 
     return process
