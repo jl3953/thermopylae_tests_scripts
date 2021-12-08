@@ -28,9 +28,13 @@ class ConfigObject:
         # self.workload_nodes = [] # to be populated
         # self.warm_nodes = [] # to be populated
         self.hot_node = [vars(node.Node(1))]  # 192.168.1.?? of hotnode
+        self.hot_node_port = [50051]
         self.hot_node_commit_branch = ["async"]
         self.hot_node_concurrency = ["56"]
         self.hot_node_threshold = [250000]
+        self.crdb_grpc_port = [50055]
+        self.prepromote_min = [0]
+        self.prepromote_max = [1000000]
         self.hot_key_threshold = [-1]
         self.should_create_partition = [False]
         self.disable_cores = [0]

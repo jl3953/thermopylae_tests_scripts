@@ -12,6 +12,7 @@ import populate_crdb_data
 import system_utils
 
 EXE = os.path.join(constants.COCKROACHDB_DIR, "cockroach")
+PREPROMOTION_EXE = os.path.join(constants.TEST_SRC_PATH, "manual_promotion.go")
 
 
 class RunMode(enum.Enum):
@@ -164,7 +165,21 @@ def kill_cockroachdb_node(node):
 
     cmd = "ssh {0} '{1}'".format(ip, cmd)
     print(cmd)
-    return subprocess.Popen(shlex.split(cmd))
+    return subprocess.Popen(shlex.split(cmd))\
+
+
+def prepromote_keys(hot_node, hot_node_port, server_nodes, server_nodes_port,
+                    key_min, key_max, batch=500):
+    cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
+    crdbAddrs = ",".join([":".join([server_node["ip"],
+                                    str(server_nodes_port)])
+                          for server_node in server_nodes])
+
+    cmd = "/usr/local/go run {0} --batch {1} --cicadaAddr {2} --crdbAddrs {3} " \
+          "--keyMin {4} --keyMax {5}".format(PREPROMOTION_EXE, batch,
+                                             cicadaAddr, crdbAddrs, key_min,
+                                             key_max)
+    system_utils.call(cmd)
 
 
 def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
@@ -188,7 +203,9 @@ def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
 
 
 def run_kv_workload(client_nodes, server_nodes, concurrency, keyspace, warm_up_duration, duration, read_percent,
-                    n_keys_per_statement, skew, log_dir, keyspace_min=0, mode=RunMode.WARMUP_AND_TRIAL_RUN):
+                    n_keys_per_statement, skew, log_dir,
+                    keyspace_min=0,
+                    mode=RunMode.WARMUP_AND_TRIAL_RUN):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
 
@@ -280,6 +297,15 @@ def run(config, log_dir):
     client_nodes = config["workload_nodes"]
     commit_hash = config["cockroach_commit"]
     hot_node = config["hot_node"] if "hot_node" in config else None
+    hot_node_port = config["hot_node_port"] if "hot_node_port" in config else\
+        None
+    prepromote_min = config["prepromote_min"] if "prepromote_min" in config \
+        else None
+    prepromote_max = config["prepromote_max"] if "prepromote_max" in config \
+        else None
+    crdb_grpc_port = config["crdb_grpc_port"] if "crdb_grpc_port" in config \
+        else None
+
     # hotkeys = config["hotkeys"]
 
     # clear any remaining experiments
@@ -304,6 +330,11 @@ def run(config, log_dir):
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
     start_cluster(server_nodes)
     set_cluster_settings_on_single_node(server_nodes[0])
+
+    # prepromote keys, if necessary
+    if hot_node:
+        prepromote_keys(hot_node, hot_node_port, server_nodes,
+                        crdb_grpc_port, prepromote_min, prepromote_max)
 
     # build and start client nodes
     results_fpath = ""
