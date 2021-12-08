@@ -177,7 +177,8 @@ def prepromote_keys(hot_node, hot_node_port, server_nodes, server_nodes_port,
                                     str(server_nodes_port)])
                           for server_node in server_nodes])
 
-    cmd = "/usr/local/go/bin/go run {0} --batch {1} --cicadaAddr {2} " \
+    cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch {1} " \
+          "--cicadaAddr {2} " \
           "--crdbAddrs {3} " \
           "--keyMin {4} --keyMax {5}".format(PREPROMOTION_EXE, batch,
                                              cicadaAddr, crdbAddrs, key_min,
