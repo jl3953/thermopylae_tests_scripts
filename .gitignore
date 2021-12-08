@@ -2,4 +2,4 @@ scratch/*
 src/__pycache__/*
 *.pyc
 config/2021*_*.ini
-src/trial_*_*.py
+src/trial_*.py

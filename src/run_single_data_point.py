@@ -110,7 +110,7 @@ def set_cluster_settings(nodes):
         set_cluster_settings_on_single_node(node)
 
 
-def setup_hotnode(node, commit_branch, concurrency, log_dir, threshold):
+def setup_hotnode(node, commit_branch, concurrency, log_dir, threshold, write_log=True):
     """ Kills node (if running) and (re-)starts it.
 
     Args:
@@ -123,7 +123,7 @@ def setup_hotnode(node, commit_branch, concurrency, log_dir, threshold):
     """
     cicada_server.kill(node)
     cicada_server.build_server(node, commit_branch)
-    cicada_server.run_server(node, concurrency, log_dir, threshold)
+    cicada_server.run_server(node, concurrency, log_dir, threshold, write_log=write_log)
 
 
 def kill_hotnode(node):
@@ -292,7 +292,7 @@ def run_kv_workload(client_nodes, server_nodes, concurrency, keyspace, warm_up_d
         return bench_log_files
 
 
-def run(config, log_dir):
+def run(config, log_dir, write_cicada_log=True):
     server_nodes = config["warm_nodes"]
     client_nodes = config["workload_nodes"]
     commit_hash = config["cockroach_commit"]
@@ -324,7 +324,8 @@ def run(config, log_dir):
         min_key = config["hot_node_threshold"]
         setup_hotnode(hot_node, config["hot_node_commit_branch"],
                       config["hot_node_concurrency"], log_dir,
-                      min_key)
+                      min_key,
+                      write_log=write_cicada_log)
 
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
