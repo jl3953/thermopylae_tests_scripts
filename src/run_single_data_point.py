@@ -333,7 +333,7 @@ def run(config, log_dir, write_cicada_log=True):
     set_cluster_settings_on_single_node(server_nodes[0])
 
     # prepromote keys, if necessary
-    if hot_node:
+    if hot_node_port:
         prepromote_keys(hot_node, hot_node_port, server_nodes,
                         crdb_grpc_port, prepromote_min, prepromote_max)
 
