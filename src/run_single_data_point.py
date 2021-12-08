@@ -12,7 +12,9 @@ import populate_crdb_data
 import system_utils
 
 EXE = os.path.join(constants.COCKROACHDB_DIR, "cockroach")
-PREPROMOTION_EXE = os.path.join(constants.TEST_SRC_PATH, "manual_promotion.go")
+PREPROMOTION_EXE = os.path.join(constants.ROOT, "smdbrpc", "go",
+                                "hotshard_gateway_client",
+                                "manual_promotion.go")
 
 
 class RunMode(enum.Enum):
