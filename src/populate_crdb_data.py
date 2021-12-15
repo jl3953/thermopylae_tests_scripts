@@ -6,7 +6,7 @@ def populate(filename, range_max, range_min=0):
     with open(filename, "w") as f:
         writer = csv.writer(f)
 
-        for i in range(range_min, range_max):
+        for i in range(range_min, range_max+1):
             writer.writerow((i, i))
 
 

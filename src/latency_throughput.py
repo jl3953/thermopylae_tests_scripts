@@ -56,7 +56,7 @@ def run(config, lt_config, log_dir):
 
             # run trial
             os.makedirs(specific_logs_dir)
-            results_fpath_csv = run_single_data_point.run(config, specific_logs_dir, write_cicada_log=False)
+            results_fpath_csv = run_single_data_point.run(config, specific_logs_dir, write_cicada_log=True)
 
             # gather data from this run
             datum = {"concurrency": concurrency}

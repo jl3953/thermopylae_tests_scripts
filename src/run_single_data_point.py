@@ -10,10 +10,10 @@ import csv_utils
 import gather
 import populate_crdb_data
 import system_utils
+import time
 
 EXE = os.path.join(constants.COCKROACHDB_DIR, "cockroach")
-PREPROMOTION_EXE = os.path.join(constants.ROOT, "smdbrpc", "go",
-                                "hotshard_gateway_client",
+PREPROMOTION_EXE = os.path.join("hotshard_gateway_client",
                                 "manual_promotion.go")
 
 
@@ -167,12 +167,13 @@ def kill_cockroachdb_node(node):
 
     cmd = "ssh {0} '{1}'".format(ip, cmd)
     print(cmd)
-    return subprocess.Popen(shlex.split(cmd))\
+    return subprocess.Popen(shlex.split(cmd))
 
 
 def prepromote_keys(hot_node, hot_node_port, server_nodes, server_nodes_port,
                     key_min, key_max, batch=500):
-    cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
+    #cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
+    cicadaAddr = "node-11:50051"
     crdbAddrs = ",".join([":".join([server_node["ip"],
                                     str(server_nodes_port)])
                           for server_node in server_nodes])
@@ -183,7 +184,8 @@ def prepromote_keys(hot_node, hot_node_port, server_nodes, server_nodes_port,
           "--keyMin {4} --keyMax {5}".format(PREPROMOTION_EXE, batch,
                                              cicadaAddr, crdbAddrs, key_min,
                                              key_max)
-    system_utils.call(cmd)
+    with open("/root/hey", "w") as f:
+        system_utils.call(cmd, f)
 
 
 def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
@@ -236,7 +238,7 @@ def run_kv_workload(client_nodes, server_nodes, concurrency, keyspace, warm_up_d
     # prepopulate data
     data_csv_leaf = "init_data.csv"
     data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)
-    populate_crdb_data.populate(data_csv, keyspace, range_min=keyspace_min)
+    populate_crdb_data.populate(data_csv, keyspace+16777216, range_min=keyspace_min+16777216)
     nfs_location = "data/{0}".format(data_csv_leaf)
     upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
         EXE, data_csv, nfs_location, a_server_node["ip"])
@@ -338,6 +340,7 @@ def run(config, log_dir, write_cicada_log=True):
 
     # prepromote keys, if necessary
     if hot_node_port:
+        time.sleep(5)
         prepromote_keys(hot_node, hot_node_port, server_nodes,
                         crdb_grpc_port, prepromote_min, prepromote_max)
 
