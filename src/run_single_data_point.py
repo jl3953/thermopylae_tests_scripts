@@ -13,10 +13,13 @@ import populate_crdb_data
 import system_utils
 import time
 
-EXE = os.path.join(constants.COCKROACHDB_DIR, "cockroach")
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
 )
+
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+IMPORT_INTO_CRDB_EXE = os.path.join(CURRENT_DIR, "import_into_crdb.py")
+
 
 
 class RunMode(enum.Enum):
@@ -269,16 +272,24 @@ def run_kv_workload(
         1000000000
     )]
     file_num = len(nfs_locations) / len(server_nodes)
+    processes = []
     for i in range(len(server_nodes)):
         node = server_nodes[i]
         if i == len(server_nodes) - 1:
-            populate_crdb_data.import_into_crdb(
-                node, nfs_locations[i * file_num:]
-            )
+            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
+                .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
+                i * file_num)
+            process = subprocess.Popen(shlex.split(cmd))
+            processes.append(process)
         else:
-            populate_crdb_data.import_into_crdb(
-                node, nfs_locations[i * file_num:(i + 1) * file_num]
-            )
+            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
+                .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
+                i * file_num)
+            process = subprocess.Popen(shlex.split(cmd))
+            processes.append(process)
+
+    for p in processes:
+        p.wait()
 
     # data_csv_leaf = "init_data.csv"
     # data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)
