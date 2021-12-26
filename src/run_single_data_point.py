@@ -6,12 +6,12 @@ import enum
 
 import cicada_server
 import constants
+from constants import EXE
 import csv_utils
 import gather
 import populate_crdb_data
 import system_utils
 
-EXE = os.path.join(constants.COCKROACHDB_DIR, "cockroach")
 PREPROMOTION_EXE = os.path.join(constants.ROOT, "smdbrpc", "go",
                                 "hotshard_gateway_client",
                                 "manual_promotion.go")

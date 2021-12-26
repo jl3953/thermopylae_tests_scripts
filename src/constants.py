@@ -9,3 +9,5 @@ SCRATCH_DIR = os.path.join(TEST_PATH, "scratch")
 CONFIG_FPATH_KEY = "config_fpath"
 
 GRPC_GO_DIR = os.path.join(ROOT, "grpc-go")
+
+EXE = os.path.join(COCKROACHDB_DIR, "cockroach")
