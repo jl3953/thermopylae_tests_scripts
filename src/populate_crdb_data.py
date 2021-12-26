@@ -31,10 +31,12 @@ def write_keyspace_to_file(fname, range_max, range_min):
 
 
 def populate(filename, range_max, range_min=0, servers=1):
-    files_per_1m = int((range_max - range_min) / 1000000)
+    # files_per_1m = int((range_max - range_min) / 1000000)
     keyspace_per_server = int((range_max - range_min) / servers)
-    data_per_file = min(keyspace_per_server, 1000000)
-    num_files = max(servers, files_per_1m)
+    # data_per_file = min(keyspace_per_server, 1000000)
+    data_per_file = keyspace_per_server
+    # num_files = max(servers, files_per_1m)
+    num_files = servers
     bookmark = range_min
     processes = []
     for i in range(0, num_files):
