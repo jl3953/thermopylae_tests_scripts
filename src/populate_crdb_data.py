@@ -20,7 +20,7 @@ def write_keyspace_to_file(fname, range_max, range_min):
     with gzip.open(fname, "wt") as f:
         writer = csv.writer(f)
 
-        for i in range(range_min, range_max):
+        for i in range(range_min, range_max+1):
             writer.writerow((i, i))
 
 
