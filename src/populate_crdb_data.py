@@ -82,8 +82,8 @@ def import_into_crdb(server, nfs_locations):
         csv = nfs_locations[i]
         if i == len(nfs_locations) - 1:
             import_cmd += '\\\"nodelocal://1/{0}\\\"'.format(csv)
-
-        import_cmd += '\\\"nodelocal://1/{0}\\\",'.format(csv)
+        else:
+            import_cmd += '\\\"nodelocal://1/{0}\\\",'.format(csv)
 
     import_cmd += ');" | {0} sql --insecure --database=kv'.format(EXE)
     system_utils.call_remote(server, import_cmd)
