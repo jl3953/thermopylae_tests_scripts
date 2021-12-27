@@ -269,25 +269,24 @@ def run_kv_workload(
 
     # prepopulate data
     nfs_locations = ["populate1B._{0}.csv.gz".format(i) for i in range(20)]
-    file_num = int(len(nfs_locations) / len(server_nodes))
+
+    # nodelocal upload
+    for file in nfs_locations:
+        local = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
+        nfs = "data/{0}".format(file)
+        populate_crdb_data.upload_nodelocal(
+            local, nfs, a_server_node["ip"] + ":26257")
+
     processes = []
+    file_num = int(len(nfs_locations) / len(server_nodes))
     for i in range(len(server_nodes)):
         node = server_nodes[i]
         if i == len(server_nodes) - 1:
 
-            # nodelocal upload
-            slice = nfs_locations[i*file_num:]
-            for file in slice:
-                local = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
-                nfs = "data/{0}".format(file)
-                populate_crdb_data.upload_nodelocal(local, nfs,
-                    node["ip"] + ":26257")
-
             # import
             cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
-                  "--store_num {4}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
-                i * file_num, i+1)
+                i * file_num)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 
@@ -302,9 +301,8 @@ def run_kv_workload(
 
             # import
             cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
-                  "--store_num {4}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
-                i * file_num, i+1)
+                i * file_num)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 

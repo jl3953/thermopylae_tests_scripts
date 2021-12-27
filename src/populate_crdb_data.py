@@ -75,15 +75,15 @@ def upload_nodelocal(
     system_utils.call(upload_cmd)
 
 
-def import_into_crdb(server, nfs_locations, store_num):
+def import_into_crdb(server, nfs_locations):
     import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA('
 
     for i in range(len(nfs_locations)):
         csv = nfs_locations[i]
         if i == len(nfs_locations) - 1:
-            import_cmd += '\\\"nodelocal://{1}/{0}\\\"'.format(csv, store_num)
+            import_cmd += '\\\"nodelocal://1/{0}\\\"'.format(csv)
         else:
-            import_cmd += '\\\"nodelocal://{1}/{0}\\\",'.format(csv, store_num)
+            import_cmd += '\\\"nodelocal://1/{0}\\\",'.format(csv)
 
     import_cmd += ');" | {0} sql --insecure --database=kv'.format(EXE)
     system_utils.call_remote(server, import_cmd)
