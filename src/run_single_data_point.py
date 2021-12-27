@@ -305,8 +305,6 @@ def run_kv_workload(
     # for p in processes:
     #     p.wait()
 
-    sys.exit(-1)
-
     # data_csv_leaf = "init_data.csv"
     # data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)
     # populate_crdb_data.populate(data_csv, keyspace+16777216,
