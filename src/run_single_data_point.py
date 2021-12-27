@@ -294,7 +294,7 @@ def run_kv_workload(
             # nodelocal upload
             slice = nfs_locations[i*file_num: (i+1)*file_num]
             for file in slice:
-                local = "/proj/cops-pg0/workspaces/jl87/{0}".format(file)
+                local = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
                 nfs = "data/{0}".format(file)
                 populate_crdb_data.upload_nodelocal(local, nfs,
                     node["ip"] + ":26257")
