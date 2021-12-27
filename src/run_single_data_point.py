@@ -284,9 +284,10 @@ def run_kv_workload(
                     node["ip"] + ":26257")
 
             # import
-            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
+            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
+                  "--store_num {4}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
-                i * file_num)
+                i * file_num, i+1)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 
@@ -300,9 +301,10 @@ def run_kv_workload(
                     node["ip"] + ":26257")
 
             # import
-            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
+            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
+                  "--store_num {4}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
-                i * file_num)
+                i * file_num, i+1)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 

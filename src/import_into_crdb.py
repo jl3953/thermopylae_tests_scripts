@@ -16,6 +16,9 @@ def main():
     parser.add_argument(
         "--range_min", type=int, required=True, help="min number to write"
     )
+    parser.add_argument(
+        "--store_num", type=int, required=True, help="crdb store num"
+    )
     args = parser.parse_args()
 
     nfs_locations = [
@@ -24,7 +27,7 @@ def main():
             args.range_min, args.range_max
         )]
 
-    populate.import_into_crdb(args.server, nfs_locations)
+    populate.import_into_crdb(args.server, nfs_locations, args.store_num)
 
     return 0
 
