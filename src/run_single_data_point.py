@@ -274,7 +274,7 @@ def run_kv_workload(
         nfs = "data/{0}".format(nfs_location)
         populate_crdb_data.upload_nodelocal(local, nfs)
 
-    file_num = len(nfs_locations) / len(server_nodes)
+    file_num = int(len(nfs_locations) / len(server_nodes))
     processes = []
     for i in range(len(server_nodes)):
         node = server_nodes[i]
@@ -313,6 +313,8 @@ def run_kv_workload(
 
     for p in processes:
         p.wait()
+
+    sys.exit(-1)
 
     # data_csv_leaf = "init_data.csv"
     # data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)

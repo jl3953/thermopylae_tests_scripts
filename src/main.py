@@ -4,8 +4,8 @@ import argparse
 import datetime
 import os
 
-import trial_object as trial_config_object_1
-import trial_CRDB_lt_graphs_2 as trial_config_object_2
+import trial_billion as trial_config_object_1
+#import trial_CRDB_lt_graphs_2 as trial_config_object_2
 
 import config_io
 import constants
@@ -22,12 +22,12 @@ import system_utils
 # configuration object generators matched to the latency throughput files
 CONFIG_OBJ_LIST = [
     (trial_config_object_1.ConfigObject(), os.path.join(constants.TEST_CONFIG_PATH, "lt.ini")),
-    (trial_config_object_2.ConfigObject(), os.path.join(constants.TEST_CONFIG_PATH, "lt2.ini")),
+    #(trial_config_object_2.ConfigObject(), os.path.join(constants.TEST_CONFIG_PATH, "lt2.ini")),
 ]
 
 # location of the entire database run
 unique_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-DB_DIR = os.path.join(os.getcwd(), "scratch/CRDB_finally_{0}".format(unique_suffix))
+DB_DIR = os.path.join(os.getcwd(), "scratch/billion_{0}".format(unique_suffix))
 
 
 ######## end of configs #############

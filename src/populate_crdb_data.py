@@ -31,12 +31,13 @@ def write_keyspace_to_file(fname, range_max, range_min):
 
 
 def populate(filename, range_max, range_min=0, servers=1):
-    # files_per_1m = int((range_max - range_min) / 1000000)
+    max_data = 5000000
+    files_per_1m = int((range_max - range_min) / max_data)
     keyspace_per_server = int((range_max - range_min) / servers)
-    # data_per_file = min(keyspace_per_server, 1000000)
-    data_per_file = keyspace_per_server
-    # num_files = max(servers, files_per_1m)
-    num_files = servers
+    data_per_file = min(keyspace_per_server, max_data)
+    # data_per_file = keyspace_per_server
+    num_files = max(servers, files_per_1m)
+    # num_files = servers
     bookmark = range_min
     processes = []
     for i in range(0, num_files):
@@ -85,10 +86,10 @@ def import_into_crdb(server, nfs_locations):
 
 
 def main():
-    filename = "/home/jennifer/thermopylae_tests_scripts/scratch/populate.csv"
-    range_max = 10000000
+    filename = "/proj/cops-PG0/workspaces/jl87/populate1B.csv"
+    range_max = 100000000
     tic = time.perf_counter()
-    populate(filename, range_max, range_min=0, servers=1)
+    populate(filename, range_max, range_min=0, servers=3)
     toc = time.perf_counter()
     print(f"elapsed {toc - tic:0.4f} seconds")
 
