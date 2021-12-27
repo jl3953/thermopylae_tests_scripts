@@ -268,38 +268,42 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data
-    nfs_locations = ["populate1B._{0}.csv.gz".format(i) for i in range(20)]
+    data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
+        20)]
 
     # nodelocal upload
-    for file in nfs_locations:
-        local = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
-        nfs = "data/{0}".format(file)
+    for file in data_files:
+        local_file_location = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
+        crdb_file_location = file
         populate_crdb_data.upload_nodelocal(
-            local, nfs, a_server_node["ip"] + ":26257")
+            local_file_location, crdb_file_location,
+            a_server_node["ip"] + ":26257")
 
-    processes = []
-    file_num = int(len(nfs_locations) / len(server_nodes))
-    for i in range(len(server_nodes)):
-        node = server_nodes[i]
-        if i == len(server_nodes) - 1:
+    populate_crdb_data.import_into_crdb(a_server_node["ip"], data_files)
 
-            # import
-            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
-                .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
-                i * file_num)
-            process = subprocess.Popen(shlex.split(cmd))
-            processes.append(process)
-
-        else:
-            # import
-            cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
-                .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
-                i * file_num)
-            process = subprocess.Popen(shlex.split(cmd))
-            processes.append(process)
-
-    for p in processes:
-        p.wait()
+    # processes = []
+    # file_num = int(len(nfs_locations) / len(server_nodes))
+    # for i in range(len(server_nodes)):
+    #     node = server_nodes[i]
+    #     if i == len(server_nodes) - 1:
+    #
+    #         # import
+    #         cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
+    #             .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
+    #             i * file_num)
+    #         process = subprocess.Popen(shlex.split(cmd))
+    #         processes.append(process)
+    #
+    #     else:
+    #         # import
+    #         cmd = "python3 {0} --server {1} --range_max {2} --range_min {3} " \
+    #             .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
+    #             i * file_num)
+    #         process = subprocess.Popen(shlex.split(cmd))
+    #         processes.append(process)
+    #
+    # for p in processes:
+    #     p.wait()
 
     sys.exit(-1)
 
