@@ -269,11 +269,6 @@ def run_kv_workload(
 
     # prepopulate data
     nfs_locations = ["populate1B._{0}.csv.gz".format(i) for i in range(20)]
-    for nfs_location in nfs_locations:
-        local = "/proj/cops-PG0/workspaces/jl87/{0}".format(nfs_location)
-        nfs = "data/{0}".format(nfs_location)
-        populate_crdb_data.upload_nodelocal(local, nfs)
-
     file_num = int(len(nfs_locations) / len(server_nodes))
     processes = []
     for i in range(len(server_nodes)):
