@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
 
     nfs_locations = [
-        "/proj/cops-PG0/workspaces/jl87/populate1B._{0}.csv.gz".format(i) for i
+        "populate1B._{0}.csv.gz".format(i) for i
         in range(
             args.range_min, args.range_max
         )]

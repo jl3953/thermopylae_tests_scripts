@@ -268,20 +268,43 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data
-    nfs_locations = ["populate1B._{0}.csv.gz".format(i) for i in range(
-        1000000000
-    )]
+    nfs_locations = ["populate1B._{0}.csv.gz".format(i) for i in range(20)]
+    for nfs_location in nfs_locations:
+        local = "/proj/cops-PG0/workspaces/jl87/{0}".format(nfs_location)
+        nfs = "data/{0}".format(nfs_location)
+        populate_crdb_data.upload_nodelocal(local, nfs)
+
     file_num = len(nfs_locations) / len(server_nodes)
     processes = []
     for i in range(len(server_nodes)):
         node = server_nodes[i]
         if i == len(server_nodes) - 1:
+
+            # nodelocal upload
+            slice = nfs_locations[i*file_num:]
+            for file in slice:
+                local = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
+                nfs = "data/{0}".format(file)
+                populate_crdb_data.upload_nodelocal(local, nfs,
+                    node["ip"] + ":26257")
+
+            # import
             cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], len(nfs_locations),
                 i * file_num)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
+
         else:
+            # nodelocal upload
+            slice = nfs_locations[i*file_num: (i+1)*file_num]
+            for file in slice:
+                local = "/proj/cops-pg0/workspaces/jl87/{0}".format(file)
+                nfs = "data/{0}".format(file)
+                populate_crdb_data.upload_nodelocal(local, nfs,
+                    node["ip"] + ":26257")
+
+            # import
             cmd = "python3 {0} --server {1} --range_max {2} --range_min {3}"\
                 .format(IMPORT_INTO_CRDB_EXE, node["ip"], (i + 1) * file_num,
                 i * file_num)
