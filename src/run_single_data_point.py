@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+import sys
 
 import enum
 
@@ -16,10 +17,6 @@ import time
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
 )
-
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-IMPORT_INTO_CRDB_EXE = os.path.join(CURRENT_DIR, "import_into_crdb.py")
-
 
 
 class RunMode(enum.Enum):
@@ -78,8 +75,9 @@ def start_cockroach_node(node, other_urls=[]):
                "--max-sql-memory=.25 "
                "--log-file-verbosity=2 "
                "--join={4} "
+               "--external-io-dir={5} "
                "--background").format(
-            EXE, ip, store, region, ",".join(n["ip"] for n in other_urls)
+            EXE, ip, store, region, ",".join(n["ip"] for n in other_urls), "/proj/cops-PG0/workspaces/jl87/"
         )
     else:
         cmd = ("{0} start-single-node --insecure "
@@ -269,23 +267,24 @@ def run_kv_workload(
 
     # prepopulate data
     data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
-        20)]
+        100)]
 
     # nodelocal upload
-    tic = time.perf_counter()
-    for file in data_files:
-        local_file_location = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
-        crdb_file_location = file
-        populate_crdb_data.upload_nodelocal(
-            local_file_location, crdb_file_location,
-            a_server_node["ip"] + ":26257")
-    toc = time.perf_counter()
-    print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
+    #tic = time.perf_counter()
+    #for file in data_files:
+    #    local_file_location = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
+    #    crdb_file_location = file
+    #    populate_crdb_data.upload_nodelocal(
+    #        local_file_location, crdb_file_location,
+    #        a_server_node["ip"] + ":26257")
+    #toc = time.perf_counter()
+    #print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
 
-    tic = time.perf_counter()
-    populate_crdb_data.import_into_crdb(a_server_node["ip"], data_files)
-    toc = time.perf_counter()
-    print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
+    #tic = time.perf_counter()
+    #populate_crdb_data.import_into_crdb(a_server_node["ip"], data_files)
+    #toc = time.perf_counter()
+    #print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
+    sys.exit(-1)
 
     if mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
 
