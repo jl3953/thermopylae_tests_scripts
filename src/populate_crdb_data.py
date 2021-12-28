@@ -1,5 +1,6 @@
 import csv
 import gzip
+import math
 import os
 import shlex
 import subprocess
@@ -22,12 +23,17 @@ def append_server_num_to_filename(original_filename, server_num):
     return fname
 
 
+def transform_row(i):
+    return i + 256 ** 5
+
+
 def write_keyspace_to_file(fname, range_max, range_min):
     with gzip.open(fname, "wt") as f:
         writer = csv.writer(f)
 
         for i in range(range_min, range_max):
-            writer.writerow((i, i))
+            key = transform_row(i)
+            writer.writerow((key, "jennifer"))
 
 
 def populate(filename, range_max, range_min=0, servers=1):
