@@ -237,7 +237,7 @@ def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
 def restore_rows(server_node, snapshot_name):
 
     drop_table = "DROP TABLE kv;"
-    restore_table = "RESTORE kv.kv FROM \\\"nodelocal://1/{0};\\\"".format(
+    restore_table = "RESTORE kv.kv FROM \\\"nodelocal://1/{0}\\\";".format(
         snapshot_name)
 
     drop_table_crdb_cmd = 'echo "{0}" | {1} sql --insecure --database ' \
