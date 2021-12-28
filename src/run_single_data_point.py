@@ -1,3 +1,4 @@
+import math
 import os
 import shlex
 import subprocess
@@ -77,7 +78,8 @@ def start_cockroach_node(node, other_urls=[]):
                "--join={4} "
                "--external-io-dir={5} "
                "--background").format(
-            EXE, ip, store, region, ",".join(n["ip"] for n in other_urls), "/proj/cops-PG0/workspaces/jl87/"
+            EXE, ip, store, region, ",".join(n["ip"] for n in other_urls),
+            "/proj/cops-PG0/workspaces/jl87/"
         )
     else:
         cmd = ("{0} start-single-node --insecure "
@@ -266,25 +268,42 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data
+    num_files = math.ceil(keyspace / 5000000)
     data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
-        100)]
+        num_files
+    )]
+    print("number of files to import:", num_files)
 
     # nodelocal upload
-    #tic = time.perf_counter()
-    #for file in data_files:
+    # tic = time.perf_counter()
+    # for file in data_files:
     #    local_file_location = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
     #    crdb_file_location = file
     #    populate_crdb_data.upload_nodelocal(
     #        local_file_location, crdb_file_location,
     #        a_server_node["ip"] + ":26257")
-    #toc = time.perf_counter()
-    #print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
+    # toc = time.perf_counter()
+    # print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
 
-    #tic = time.perf_counter()
-    #populate_crdb_data.import_into_crdb(a_server_node["ip"], data_files)
-    #toc = time.perf_counter()
-    #print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
-    sys.exit(-1)
+    for i in range(1, num_files, 10):
+        tic = time.perf_counter()
+        populate_crdb_data.import_into_crdb(
+            a_server_node["ip"], data_files[i - 10: i]
+        )
+        toc = time.perf_counter()
+        print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
+
+    remaining_files = num_files % 10
+    if remaining_files > 0:
+        tic = time.perf_counter()
+        populate_crdb_data.import_into_crdb(
+            a_server_node["ip"], data_files[-remaining_files:]
+        )
+        toc = time.perf_counter()
+        print(f"elapsed {toc - tic:0.4f} seconds, imported",
+            num_files-remaining_files, num_files)
+
+    sys.exit(0)
 
     if mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
 
