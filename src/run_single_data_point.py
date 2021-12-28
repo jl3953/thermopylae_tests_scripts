@@ -234,6 +234,21 @@ def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
     enable_cores(server_nodes, 15)
 
 
+def restore_rows(server_node, snapshot_name):
+
+    drop_table = "DROP TABLE kv;"
+    restore_table = "RESTORE kv.kv FROM 'nodelocal://1/{0};".format(
+        snapshot_name)
+
+    drop_table_crdb_cmd = 'echo "{0}" | {1} sql --insecure --database ' \
+                          'kv'.format(drop_table, EXE)
+    restore_crdb_cmd = 'echo "{0}" | {1} sql --insecure --database ' \
+                       'kv'.format(restore_table, EXE)
+
+    system_utils.call_remote(server_node, drop_table_crdb_cmd)
+    system_utils.call_remote(server_node, restore_crdb_cmd)
+
+
 def run_kv_workload(
     client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
     duration, read_percent, n_keys_per_statement, skew, log_dir, keyspace_min=0,
@@ -268,11 +283,11 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data
-    num_files = math.ceil(keyspace / 5000000)
-    data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
-        num_files
-    )]
-    print("number of files to import:", num_files)
+    # num_files = math.ceil(keyspace / 5000000)
+    # data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
+    #     num_files
+    # )]
+    # print("number of files to import:", num_files)
 
     # nodelocal upload
     # tic = time.perf_counter()
@@ -285,25 +300,26 @@ def run_kv_workload(
     # toc = time.perf_counter()
     # print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
 
-    for i in range(10, num_files, 10):
-        tic = time.perf_counter()
-        populate_crdb_data.import_into_crdb(
-            a_server_node["ip"], data_files[i - 10: i]
-        )
-        toc = time.perf_counter()
-        print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
+    # for i in range(10, num_files, 10):
+    #     tic = time.perf_counter()
+    #     populate_crdb_data.import_into_crdb(
+    #         a_server_node["ip"], data_files[i - 10: i]
+    #     )
+    #     toc = time.perf_counter()
+    #     print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
+    #
+    # remaining_files = num_files % 10
+    # if remaining_files > 0:
+    #     tic = time.perf_counter()
+    #     populate_crdb_data.import_into_crdb(
+    #         a_server_node["ip"], data_files[-remaining_files:]
+    #     )
+    #     toc = time.perf_counter()
+    #     print(f"elapsed {toc - tic:0.4f} seconds, imported",
+    #         num_files-remaining_files, num_files)
+    restore_rows(a_server_node["ip"], "jenndebug/400M")
 
-    remaining_files = num_files % 10
-    if remaining_files > 0:
-        tic = time.perf_counter()
-        populate_crdb_data.import_into_crdb(
-            a_server_node["ip"], data_files[-remaining_files:]
-        )
-        toc = time.perf_counter()
-        print(f"elapsed {toc - tic:0.4f} seconds, imported",
-            num_files-remaining_files, num_files)
-
-    sys.exit(0)
+    # sys.exit(0)
 
     if mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
 
