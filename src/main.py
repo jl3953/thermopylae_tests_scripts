@@ -27,7 +27,7 @@ CONFIG_OBJ_LIST = [
 
 # location of the entire database run
 unique_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-DB_DIR = os.path.join(os.getcwd(), "scratch/billion_{0}".format(unique_suffix))
+DB_DIR = os.path.join(os.getcwd(), "scratch/therm_1M{0}".format(unique_suffix))
 
 
 ######## end of configs #############
@@ -113,6 +113,7 @@ def main():
 
             # run trial
             cfg["concurrency"] = latency_throughput.find_optimal_concurrency(lt_fpath_csv)
+            #cfg["concurrency"] = 64
             results_fpath_csv = run_single_data_point.run(cfg, logs_dir)
 
             # insert into sqlite db
@@ -125,7 +126,8 @@ def main():
                                                  keyspace=cfg["keyspace"],
                                                  read_percent=cfg["read_percent"],
                                                  n_keys_per_statement=cfg["n_keys_per_statement"],
-                                                 skews=cfg["skews"])
+                                                 skews=cfg["skews"],
+                                                 prepromote_max=cfg["prepromote_max"])
 
             #except BaseException as e:
             #    print("Config {0} failed to run, continue with other configs. e:[{1}]"

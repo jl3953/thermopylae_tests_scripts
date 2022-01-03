@@ -193,7 +193,7 @@ def kill_cockroachdb_node(node):
 
 def prepromote_keys(
     hot_node, hot_node_port, server_nodes, server_nodes_port, key_min, key_max,
-    batch=500
+    batch=5000
 ):
     # cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
     cicadaAddr = "node-11:50051"
@@ -282,12 +282,25 @@ def run_kv_workload(
     )
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
+    # prepopulate data the old way
+    # data_csv_leaf = "init_data.csv.gz"
+    # data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)
+    # populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1, range_min=keyspace_min)
+    # nfs_location = "data/{0}".format(data_csv_leaf)
+    # # upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
+    # #     EXE, data_csv, nfs_location, a_server_node["ip"])
+    # # system_utils.call(upload_cmd)
+    # import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(\\\"nodelocal://1/{1}\\\");" | ' \
+    #              "{0} sql --insecure --database=kv".format(EXE, nfs_location)
+    # system_utils.call_remote(a_server_node["ip"], import_cmd)
+    
+
     # prepopulate data
-    # num_files = math.ceil(keyspace / 5000000)
-    # data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
-    #     num_files
-    # )]
-    # print("number of files to import:", num_files)
+    num_files = math.ceil(keyspace / 5000000)
+    data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
+        num_files
+    )]
+    print("number of files to import:", num_files)
 
     # nodelocal upload
     # tic = time.perf_counter()
@@ -300,24 +313,25 @@ def run_kv_workload(
     # toc = time.perf_counter()
     # print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
 
-    # for i in range(10, num_files, 10):
-    #     tic = time.perf_counter()
-    #     populate_crdb_data.import_into_crdb(
-    #         a_server_node["ip"], data_files[i - 10: i]
-    #     )
-    #     toc = time.perf_counter()
-    #     print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
-    #
-    # remaining_files = num_files % 10
-    # if remaining_files > 0:
-    #     tic = time.perf_counter()
-    #     populate_crdb_data.import_into_crdb(
-    #         a_server_node["ip"], data_files[-remaining_files:]
-    #     )
-    #     toc = time.perf_counter()
-    #     print(f"elapsed {toc - tic:0.4f} seconds, imported",
-    #         num_files-remaining_files, num_files)
-    restore_rows(a_server_node["ip"], "jenndebug/400M")
+    if num_files >= 10:
+        for i in range(10, num_files, 10):
+            tic = time.perf_counter()
+            populate_crdb_data.import_into_crdb(
+                a_server_node["ip"], data_files[i - 10: i]
+            )
+            toc = time.perf_counter()
+            print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
+    
+    remaining_files = num_files % 10
+    if remaining_files > 0:
+        tic = time.perf_counter()
+        populate_crdb_data.import_into_crdb(
+            a_server_node["ip"], data_files[-remaining_files:]
+        )
+        toc = time.perf_counter()
+        print(f"elapsed {toc - tic:0.4f} seconds, imported",
+            num_files-remaining_files, num_files)
+     restore_rows(a_server_node["ip"], "jenndebug/400M")
 
     # sys.exit(0)
 
@@ -413,10 +427,10 @@ def run(config, log_dir, write_cicada_log=True):
     # start hot node
     min_key = 0
     if hot_node:
-        min_key = config["hot_node_threshold"]
+        min_key_promotion = config["hot_node_threshold"]
         setup_hotnode(
             hot_node, config["hot_node_commit_branch"],
-            config["hot_node_concurrency"], log_dir, min_key,
+            config["hot_node_concurrency"], log_dir, min_key_promotion,
             write_log=write_cicada_log
         )
 
