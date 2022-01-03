@@ -40,6 +40,8 @@ class ConfigObject:
         self.disable_cores = [0]
 
         # benchmark
+        self.hash_randomize_keyspace = [True]
+        self.allow_variable_sized_encoding = [False]
         self.name = ["kv"]
         self.keyspace = [1000000]
         # self.concurrency = [] # to be populated
