@@ -27,16 +27,20 @@ def transform_row(i):
     return i + 256 ** 5
 
 
-def write_keyspace_to_file(fname, range_max, range_min):
+def write_keyspace_to_file(fname, range_max, range_min,
+                           enable_fixed_sized_encoding=True):
     with gzip.open(fname, "wt") as f:
         writer = csv.writer(f)
 
         for i in range(range_min, range_max):
-            key = transform_row(i)
+            key = i
+            if enable_fixed_sized_encoding:
+                key = transform_row(i)
             writer.writerow((key, "jennifer"))
 
 
-def populate(filename, range_max, range_min=0, servers=1):
+def populate(filename, range_max, range_min=0, servers=1,
+             enable_fixed_sized_encoding=True):
     max_data = 5000000
     files_per_1m = int((range_max - range_min) / max_data)
     keyspace_per_server = int((range_max - range_min) / servers)
@@ -52,14 +56,16 @@ def populate(filename, range_max, range_min=0, servers=1):
         if i == num_files - 1:
             # last file to be written
             cmd = "python3 {0} --location_of_file {1} --range_max {2} " \
-                  "--range_min {3}"\
-                .format(WRITE_KEYS_EXE, fname, range_max + 1, bookmark)
+                  "--range_min {3} --enable_fixed_sized_encoding {4}"\
+                .format(WRITE_KEYS_EXE, fname, range_max + 1, bookmark,
+                enable_fixed_sized_encoding)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
         else:
             cmd = "python3 {0} --location_of_file {1} --range_max {2} " \
-                  "--range_min {3}"\
-                .format(WRITE_KEYS_EXE, fname, bookmark + data_per_file, bookmark)
+                  "--range_min {3} --enable_fixed_sized_encoding {4}"\
+                .format(WRITE_KEYS_EXE, fname, bookmark + data_per_file,
+                bookmark, enable_fixed_sized_encoding)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 

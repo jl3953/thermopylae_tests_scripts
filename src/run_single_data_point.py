@@ -192,8 +192,8 @@ def kill_cockroachdb_node(node):
 
 
 def prepromote_keys(
-    hot_node, hot_node_port, server_nodes, server_nodes_port, key_min, key_max,
-    batch=5000
+    hot_node, hot_node_port, server_nodes, server_nodes_port, key_min,
+    key_max, hash_randomize_keyspace, enable_fixed_sized_encoding, batch=5000
 ):
     # cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
     cicadaAddr = "node-11:50051"
@@ -206,8 +206,12 @@ def prepromote_keys(
     cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch {1} " \
           "--cicadaAddr {2} " \
           "--crdbAddrs {3} " \
-          "--keyMin {4} --keyMax {5}".format(
-        PREPROMOTION_EXE, batch, cicadaAddr, crdbAddrs, key_min, key_max
+          "--keyMin {4} " \
+          "--keyMax {5} " \
+          "--hash_randomize_keyspace {6} " \
+          "--enable_fixed_sized_encoding {7} ".format(
+        PREPROMOTION_EXE, batch, cicadaAddr, crdbAddrs, key_min, key_max,
+        hash_randomize_keyspace, enable_fixed_sized_encoding
     )
     with open("/root/hey", "w") as f:
         system_utils.call(cmd, f)
@@ -252,7 +256,8 @@ def restore_rows(server_node, snapshot_name):
 def run_kv_workload(
     client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
     duration, read_percent, n_keys_per_statement, skew, log_dir, keyspace_min=0,
-    mode=RunMode.WARMUP_AND_TRIAL_RUN
+    mode=RunMode.WARMUP_AND_TRIAL_RUN,
+    hash_randomize_keyspace=True, enable_fixed_sized_encoding=True
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -261,7 +266,12 @@ def run_kv_workload(
     args = ["--concurrency {}".format(int(concurrency)),
             "--read-percent={}".format(read_percent),
             "--batch={}".format(n_keys_per_statement),
-            "--zipfian --s={}".format(skew), "--keyspace={}".format(keyspace)]
+            "--zipfian --s={}".format(skew),
+            "--keyspace={}".format(keyspace),
+            "--hash_randomize_keyspace={}".format(hash_randomize_keyspace),
+            "--enable_fixed_sized_encoding={}".format(
+                enable_fixed_sized_encoding),
+            ]
     # cmd = "{0} workload run kv {1} {2} --useOriginal=False".format(EXE,
     # " ".join(server_urls), " ".join(args))
 
@@ -285,11 +295,13 @@ def run_kv_workload(
     # prepopulate data the old way
     # data_csv_leaf = "init_data.csv.gz"
     # data_csv = os.path.join(constants.SCRATCH_DIR, data_csv_leaf)
-    # populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1, range_min=keyspace_min)
+    # populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
+    #     range_min=keyspace_min,
+    #     enable_fixed_sized_encoding=enable_fixed_sized_encoding)
     # nfs_location = "data/{0}".format(data_csv_leaf)
-    # # upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
-    # #     EXE, data_csv, nfs_location, a_server_node["ip"])
-    # # system_utils.call(upload_cmd)
+    # upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
+    #     EXE, data_csv, nfs_location, a_server_node["ip"])
+    # system_utils.call(upload_cmd)
     # import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(\\\"nodelocal://1/{1}\\\");" | ' \
     #              "{0} sql --insecure --database=kv".format(EXE, nfs_location)
     # system_utils.call_remote(a_server_node["ip"], import_cmd)
@@ -331,7 +343,8 @@ def run_kv_workload(
         toc = time.perf_counter()
         print(f"elapsed {toc - tic:0.4f} seconds, imported",
             num_files-remaining_files, num_files)
-     restore_rows(a_server_node["ip"], "jenndebug/400M")
+
+    restore_rows(a_server_node["ip"], "jenndebug/400M")
 
     # sys.exit(0)
 
@@ -411,6 +424,8 @@ def run(config, log_dir, write_cicada_log=True):
         "prepromote_max"] if "prepromote_max" in config else None
     crdb_grpc_port = config[
         "crdb_grpc_port"] if "crdb_grpc_port" in config else None
+    hash_randomize_keyspace = config["hash_randomize_keyspace"]
+    enable_fixed_sized_encoding = config["enable_fixed_sized_encoding"]
 
     # hotkeys = config["hotkeys"]
 
@@ -444,7 +459,9 @@ def run(config, log_dir, write_cicada_log=True):
         time.sleep(5)
         prepromote_keys(
             hot_node, hot_node_port, server_nodes, crdb_grpc_port,
-            prepromote_min, prepromote_max
+            prepromote_min, prepromote_max,
+            hash_randomize_keyspace=hash_randomize_keyspace,
+            enable_fixed_sized_encoding=enable_fixed_sized_encoding
         )
 
     # build and start client nodes
