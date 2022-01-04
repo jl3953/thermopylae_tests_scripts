@@ -213,7 +213,7 @@ def prepromote_keys(
           "--crdbAddrs={3} " \
           "--keyMin={4} " \
           "--keyMax={5} " \
-          "--keyspace={6}" \
+          "--keyspace={6} " \
           "--hash_randomize_keyspace={7} " \
           "--enable_fixed_sized_encoding={8} ".format(
         PREPROMOTION_EXE, batch, cicadaAddr, crdbAddrs, key_min, key_max,
