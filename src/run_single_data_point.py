@@ -193,7 +193,8 @@ def kill_cockroachdb_node(node):
 
 def prepromote_keys(
     hot_node, hot_node_port, server_nodes, server_nodes_port, key_min,
-    key_max, hash_randomize_keyspace, enable_fixed_sized_encoding, batch=5000
+    key_max, keyspace, hash_randomize_keyspace, enable_fixed_sized_encoding,
+    batch=5000
 ):
 
     cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
@@ -207,15 +208,16 @@ def prepromote_keys(
     update_smdbrpc_repo = "cd /root/smdbrpc; git stash; git pull origin " \
                           "demotehotkeys; /root/smdbrpc/generate_new_protos.sh"
 
-    cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch {1} " \
-          "--cicadaAddr {2} " \
-          "--crdbAddrs {3} " \
-          "--keyMin {4} " \
-          "--keyMax {5} " \
-          "--hash_randomize_keyspace {6} " \
-          "--enable_fixed_sized_encoding {7} ".format(
+    cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch={1} " \
+          "--cicadaAddr={2} " \
+          "--crdbAddrs={3} " \
+          "--keyMin={4} " \
+          "--keyMax={5} " \
+          "--keyspace={6}" \
+          "--hash_randomize_keyspace={7} " \
+          "--enable_fixed_sized_encoding={8} ".format(
         PREPROMOTION_EXE, batch, cicadaAddr, crdbAddrs, key_min, key_max,
-        hash_randomize_keyspace, enable_fixed_sized_encoding
+        keyspace, hash_randomize_keyspace, enable_fixed_sized_encoding
     )
     with open("/root/hey", "w") as f:
         system_utils.call(update_smdbrpc_repo, f)
@@ -446,6 +448,7 @@ def run(config, log_dir, write_cicada_log=True):
         "crdb_grpc_port"] if "crdb_grpc_port" in config else None
     hash_randomize_keyspace = config["hash_randomize_keyspace"]
     enable_fixed_sized_encoding = config["enable_fixed_sized_encoding"]
+    keyspace = config["keyspace"]
 
     # hotkeys = config["hotkeys"]
 
@@ -479,15 +482,14 @@ def run(config, log_dir, write_cicada_log=True):
         time.sleep(5)
         prepromote_keys(
             hot_node, hot_node_port, server_nodes, crdb_grpc_port,
-            prepromote_min, prepromote_max,
-            hash_randomize_keyspace=hash_randomize_keyspace,
-            enable_fixed_sized_encoding=enable_fixed_sized_encoding
+            prepromote_min, prepromote_max, keyspace,
+            hash_randomize_keyspace, enable_fixed_sized_encoding
         )
 
     # build and start client nodes
     results_fpath = ""
     if config["name"] == "kv":
-        keyspace = config["keyspace"]
+
         warm_up_duration = config["warm_up_duration"]
         duration = config["duration"]
         read_percent = config["read_percent"]
