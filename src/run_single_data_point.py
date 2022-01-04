@@ -496,7 +496,8 @@ def run(config, log_dir, write_cicada_log=True):
         bench_log_files = run_kv_workload(
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
-            keyspace_min=min_key
+            keyspace_min=min_key,
+            enable_fixed_sized_encoding=enable_fixed_sized_encoding
         )
 
         # create csv file of gathered data
