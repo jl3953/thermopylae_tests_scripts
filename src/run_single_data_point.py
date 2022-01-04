@@ -195,8 +195,6 @@ def prepromote_keys(
     hot_node, hot_node_port, server_nodes, server_nodes_port, key_min,
     key_max, hash_randomize_keyspace, enable_fixed_sized_encoding, batch=5000
 ):
-    print("enable_fixed_sized_encoding", enable_fixed_sized_encoding)
-    sys.exit(-1)
 
     cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
     #cicadaAddr = "node-11:50051"
