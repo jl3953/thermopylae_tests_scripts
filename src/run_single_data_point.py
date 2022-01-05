@@ -127,7 +127,7 @@ def set_cluster_settings(nodes):
 
 
 def setup_hotnode(
-    node, commit_branch, concurrency, log_dir, threshold, write_log=True
+    node, commit_branch, concurrency, log_dir, num_rows_in_db, write_log=True
 ):
     """ Kills node (if running) and (re-)starts it.
 
@@ -142,7 +142,7 @@ def setup_hotnode(
     cicada_server.kill(node)
     cicada_server.build_server(node, commit_branch)
     cicada_server.run_server(
-        node, concurrency, log_dir, threshold, write_log=write_log
+        node, concurrency, log_dir, num_rows_in_db, write_log=write_log
     )
 
 
@@ -465,10 +465,11 @@ def run(config, log_dir, write_cicada_log=True):
     # start hot node
     min_key = 0
     if hot_node:
-        min_key_promotion = config["hot_node_threshold"]
+        num_rows_in_cicada = config["prepromotion_max"] - config[
+            "prepromotion_min"] + 1
         setup_hotnode(
             hot_node, config["hot_node_commit_branch"],
-            config["hot_node_concurrency"], log_dir, min_key_promotion,
+            config["hot_node_concurrency"], log_dir, num_rows_in_cicada,
             write_log=write_cicada_log
         )
 

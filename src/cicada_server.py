@@ -31,11 +31,11 @@ def build_client(client_node, commit_branch):
     async_server.build_client(client_node, commit_branch)
 
 
-def run_server(server_node, concurrency, log_dir, threshold, write_log=True):
+def run_server(server_node, concurrency, log_dir, num_rows_in_dbs, write_log=True):
     server_url = server_node["ip"]
 
     cmd = "/root/cicada-engine/build/hotshard_gateway_server {0} {1}" \
-        .format(concurrency, threshold)
+        .format(concurrency, num_rows_in_dbs)
     ssh_wrapped_cmd = "sudo ssh {0} '{1}'".format(server_url, cmd)
 
     log_fpath = os.path.join(log_dir, "logs")
