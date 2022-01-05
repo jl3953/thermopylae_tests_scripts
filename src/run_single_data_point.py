@@ -465,8 +465,7 @@ def run(config, log_dir, write_cicada_log=True):
     # start hot node
     min_key = 0
     if hot_node:
-        num_rows_in_cicada = config["prepromotion_max"] - config[
-            "prepromotion_min"] + 1
+        num_rows_in_cicada = prepromote_max - prepromote_min + 1
         setup_hotnode(
             hot_node, config["hot_node_commit_branch"],
             config["hot_node_concurrency"], log_dir, num_rows_in_cicada,
