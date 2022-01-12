@@ -500,6 +500,7 @@ def run(config, log_dir, write_cicada_log=True):
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
             keyspace_min=min_key,
+            hash_randomize_keyspace=hash_randomize_keyspace,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding
         )
 
