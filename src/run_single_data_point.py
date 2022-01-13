@@ -262,7 +262,9 @@ def restore_rows(server_node, snapshot_name):
 
 def run_kv_workload(
     client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
-    duration, read_percent, n_keys_per_statement, skew, log_dir, keyspace_min=0,
+    duration, read_percent, n_keys_per_statement, skew, log_dir,
+    prepromote_min, prepromote_max, hot_node, hot_node_port,
+    crdb_grpc_port, keyspace_min=0,
     mode=RunMode.WARMUP_AND_TRIAL_RUN,
     hash_randomize_keyspace=True, enable_fixed_sized_encoding=True
 ):
@@ -369,6 +371,15 @@ def run_kv_workload(
     else:
         print("keyspace larger than 400M, unsupported")
         sys.exit(-1)
+
+    # prepromote keys, if necessary
+    if prepromote_max - prepromote_min > 0:
+        time.sleep(5)
+        prepromote_keys(
+            hot_node, hot_node_port, server_nodes, crdb_grpc_port,
+            prepromote_min, prepromote_max, keyspace,
+            hash_randomize_keyspace, enable_fixed_sized_encoding
+        )
 
     if mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
 
@@ -477,15 +488,6 @@ def run(config, log_dir, write_cicada_log=True):
     start_cluster(server_nodes)
     set_cluster_settings_on_single_node(server_nodes[0])
 
-    # prepromote keys, if necessary
-    if prepromote_max - prepromote_min > 0:
-        time.sleep(5)
-        prepromote_keys(
-            hot_node, hot_node_port, server_nodes, crdb_grpc_port,
-            prepromote_min, prepromote_max, keyspace,
-            hash_randomize_keyspace, enable_fixed_sized_encoding
-        )
-
     # build and start client nodes
     results_fpath = ""
     if config["name"] == "kv":
@@ -499,6 +501,8 @@ def run(config, log_dir, write_cicada_log=True):
         bench_log_files = run_kv_workload(
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
+            prepromote_min, prepromote_max, hot_node, hot_node_port,
+            crdb_grpc_port,
             keyspace_min=min_key,
             hash_randomize_keyspace=hash_randomize_keyspace,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding
