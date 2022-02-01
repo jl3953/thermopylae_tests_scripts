@@ -122,7 +122,7 @@ def import_into_crdb(server, nfs_locations):
 def main():
     parser = argparse.ArgumentParser()
     filename = "/proj/cops-PG0/workspaces/jl87/populate1B.csv"
-    range_max = 400000000
+    range_max = 300000000
     tic = time.perf_counter()
     populate(filename, range_max, range_min=0, servers=3)
     toc = time.perf_counter()
