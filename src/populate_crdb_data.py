@@ -46,6 +46,7 @@ def write_keyspace_to_file(fname, range_max, range_min, payload_size,
             if enable_fixed_sized_encoding:
                 key = transform_row(i)
             writer.writerow((key, payload))
+    print("done with", fname)
 
 
 def populate(filename, range_max, range_min=0, servers=1, payload_size=512,
