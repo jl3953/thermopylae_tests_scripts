@@ -13,7 +13,7 @@ from constants import EXE
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 WRITE_KEYS_EXE = os.path.join(CURRENT_DIR, "write_keyspace_to_file.py")
-MAX_DATA_ROWS_PER_FILE = 100000
+MAX_DATA_ROWS_PER_FILE = 1000000
 
 
 def append_server_num_to_filename(original_filename, server_num):
