@@ -18,12 +18,17 @@ def main():
     )
     parser.add_argument(
         "--enable_fixed_sized_encoding", type=bool, required=True,
-        help="should not add constant to force fixed sized encoding"
+        help="force fixed sized encoding"
+    )
+    parser.add_argument(
+        "--payload_size", type=int, required=True,
+        help="size of value"
     )
     args = parser.parse_args()
 
     populate.write_keyspace_to_file(
         args.location_of_file, args.range_max, args.range_min,
+        args.payload_size,
         enable_fixed_sized_encoding=args.enable_fixed_sized_encoding
     )
 

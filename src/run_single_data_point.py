@@ -302,7 +302,7 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data the old way
-    if keyspace - keyspace_min < 5000000:
+    if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
         data_csv = os.path.join("/proj/cops-PG0/workspaces/jl87/data",
             data_csv_leaf)
@@ -324,7 +324,7 @@ def run_kv_workload(
             sys.exit(-1)
 
         # prepopulate data
-        num_files = math.ceil(keyspace / 5000000)
+        num_files = math.ceil(keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE)
         data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
             num_files
         )]

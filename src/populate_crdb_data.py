@@ -1,3 +1,4 @@
+import argparse
 import csv
 import gzip
 import math
@@ -12,6 +13,7 @@ from constants import EXE
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 WRITE_KEYS_EXE = os.path.join(CURRENT_DIR, "write_keyspace_to_file.py")
+MAX_DATA_ROWS_PER_FILE = 80000
 
 
 def append_server_num_to_filename(original_filename, server_num):
@@ -27,8 +29,15 @@ def transform_row(i):
     return i + 256 ** 5
 
 
-def write_keyspace_to_file(fname, range_max, range_min,
+def write_keyspace_to_file(fname, range_max, range_min, payload_size,
                            enable_fixed_sized_encoding=True):
+    # forming payload
+    payload = ""
+    for i in range(0, payload_size, len("jennifer")):
+        payload += "jennifer"
+    for i in range(len(payload), payload_size):
+        payload += "l"
+
     with gzip.open(fname, "wt") as f:
         writer = csv.writer(f)
 
@@ -36,17 +45,23 @@ def write_keyspace_to_file(fname, range_max, range_min,
             key = i
             if enable_fixed_sized_encoding:
                 key = transform_row(i)
-            writer.writerow((key, "jennifer"))
+            writer.writerow((key, payload))
 
 
-def populate(filename, range_max, range_min=0, servers=1,
+def populate(filename, range_max, range_min=0, servers=1, payload_size=512,
              enable_fixed_sized_encoding=True):
-    max_data = 5000000
-    files_per_1m = int((range_max - range_min) / max_data)
-    keyspace_per_server = int((range_max - range_min) / servers)
-    data_per_file = min(keyspace_per_server, max_data)
-    # data_per_file = keyspace_per_server
-    num_files = max(servers, files_per_1m)
+
+    # number of files to be written
+    num_data_files = int((range_max - range_min) / MAX_DATA_ROWS_PER_FILE)
+    data_per_file = MAX_DATA_ROWS_PER_FILE
+
+    # # keyspace per server, in case keyspace is smaller
+    # keyspace_per_server = int((range_max - range_min) / servers)
+    # data_per_file = min(keyspace_per_server, MAX_DATA_ROWS_PER_FILE)
+    # num_files = max(servers, num_data_files)
+
+    num_files = num_data_files
+
     # num_files = servers
     bookmark = range_min
     processes = []
@@ -56,16 +71,18 @@ def populate(filename, range_max, range_min=0, servers=1,
         if i == num_files - 1:
             # last file to be written
             cmd = "python3 {0} --location_of_file {1} --range_max {2} " \
-                  "--range_min {3} --enable_fixed_sized_encoding {4}"\
+                  "--range_min {3} " \
+                  "--payload_size {4} --enable_fixed_sized_encoding {5}"\
                 .format(WRITE_KEYS_EXE, fname, range_max + 1, bookmark,
-                enable_fixed_sized_encoding)
+                payload_size, enable_fixed_sized_encoding)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
         else:
             cmd = "python3 {0} --location_of_file {1} --range_max {2} " \
-                  "--range_min {3} --enable_fixed_sized_encoding {4}"\
+                  "--range_min {3} " \
+                  "--payload_size {4} --enable_fixed_sized_encoding {5}"\
                 .format(WRITE_KEYS_EXE, fname, bookmark + data_per_file,
-                bookmark, enable_fixed_sized_encoding)
+                bookmark, payload_size, enable_fixed_sized_encoding)
             process = subprocess.Popen(shlex.split(cmd))
             processes.append(process)
 
@@ -102,8 +119,9 @@ def import_into_crdb(server, nfs_locations):
 
 
 def main():
+    parser = argparse.ArgumentParser()
     filename = "/proj/cops-PG0/workspaces/jl87/populate1B.csv"
-    range_max = 2000000000
+    range_max = 400000000
     tic = time.perf_counter()
     populate(filename, range_max, range_min=0, servers=3)
     toc = time.perf_counter()
