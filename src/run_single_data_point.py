@@ -325,9 +325,8 @@ def run_kv_workload(
 
         # prepopulate data
         num_files = math.ceil(keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE)
-        data_files = ["populate1B._{0}.csv.gz".format(i) for i in range(
-            num_files
-        )]
+        data_files = ["populate1B._{0}.csv.gz".format(i)
+                      for i in range(num_files+1)]
         print("number of files to import:", num_files)
 
         # nodelocal upload
