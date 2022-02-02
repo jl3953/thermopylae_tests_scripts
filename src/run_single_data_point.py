@@ -18,6 +18,7 @@ import time
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
 )
+SNAPSHOT_THRESHOLD = 300000000
 
 
 class RunMode(enum.Enum):
@@ -317,7 +318,7 @@ def run_kv_workload(
                      "{0} sql --insecure --database=kv".format(EXE, nfs_location)
         system_utils.call_remote(a_server_node["ip"], import_cmd)
 
-    elif keyspace < 400000000:
+    elif keyspace < SNAPSHOT_THRESHOLD:
         if enable_fixed_sized_encoding is False:
             print("don't have preset files for "
                   "enable_fixed_sized_encoding=false")
@@ -359,16 +360,16 @@ def run_kv_workload(
             print(f"elapsed {toc - tic:0.4f} seconds, imported",
                 num_files-remaining_files, num_files)
 
-    elif keyspace == 400000000:
+    elif keyspace == SNAPSHOT_THRESHOLD:
         if enable_fixed_sized_encoding is False:
             print("don't have preset population files for "
                   "enable_fixed_sized_encoding=false")
             sys.exit(-1)
 
-        restore_rows(a_server_node["ip"], "jenndebug/400M")
+        restore_rows(a_server_node["ip"], "data/jenndebug")
 
     else:
-        print("keyspace larger than 400M, unsupported")
+        print("keyspace larger than 300M, unsupported")
         sys.exit(-1)
 
     # prepromote keys, if necessary
