@@ -303,12 +303,15 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data the old way
-    if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+    if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
+        restore_rows(a_server_node["ip"], "data/1M")
+
+    elif keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
         data_csv = os.path.join("/proj/cops-PG0/workspaces/jl87/data",
             data_csv_leaf)
         populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
-            range_min=keyspace_min,
+            range_min=keyspace_min, payload_size=512,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding)
         nfs_location = "data/{0}".format(data_csv_leaf)
         # upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
