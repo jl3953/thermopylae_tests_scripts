@@ -1,6 +1,6 @@
 scratch/*
 src/__pycache__/*
 *.pyc
-config/2021*_*.ini
+config/2022*_*.ini
 src/trial_*.py
 .idea
