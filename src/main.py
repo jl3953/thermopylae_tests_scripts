@@ -27,7 +27,7 @@ CONFIG_OBJ_LIST = [
 
 # location of the entire database run
 unique_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-DB_DIR = os.path.join(os.getcwd(), "scratch/therm_1M{0}".format(unique_suffix))
+DB_DIR = os.path.join(os.getcwd(), "scratch/trial_CRDB_scalability_1M_0_1.5_{0}".format(unique_suffix))
 
 
 ######## end of configs #############
@@ -108,12 +108,28 @@ def main():
             # copy over config into directory
             system_utils.call("cp {0} {1}".format(cfg[constants.CONFIG_FPATH_KEY], logs_dir))
 
-            # generate latency throughput trials
-            lt_fpath_csv = latency_throughput.run(cfg, lt_cfg, logs_dir)
+            if cfg["skews"] <= 0.01:
+                cfg["concurrency"] = 36
+            elif cfg["skews"] <= 0.6:
+                cfg["concurrency"] = 56
+            elif cfg["skews"] <= 0.7:
+                cfg["concurrency"] = 64
+            elif cfg["skews"] <= 0.8:
+                cfg["concurrency"] = 72
+            elif cfg["skews"] <= 0.9:
+                cfg["concurrency"] = 104
+            elif cfg["skews"] <= 1.3:
+                cfg["concurrency"] = 110
+            else:
+                cfg["concurrency"] = 110
 
-            # run trial
-            cfg["concurrency"] = latency_throughput.find_optimal_concurrency(lt_fpath_csv)
-            #cfg["concurrency"] = 64
+            if cfg["generate_latency_throughput"]:
+                # generate latency throughput trials
+                lt_fpath_csv = latency_throughput.run(cfg, lt_cfg, logs_dir)
+
+                # run trial
+                cfg["concurrency"] = latency_throughput.find_optimal_concurrency(lt_fpath_csv)
+
             results_fpath_csv = run_single_data_point.run(cfg, logs_dir)
 
             # insert into sqlite db

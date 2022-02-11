@@ -91,7 +91,9 @@ def start_cockroach_node(node, other_urls=[]):
                "--max-sql-memory=.25 "
                "--log-file-verbosity=2 "
                "--http-addr=localhost:8080 "
-               "--background").format(EXE, ip, store, region)
+               "--external-io-dir={4} "
+               "--background").format(EXE, ip, store, region,
+               "/proj/cops-PG0/workspaces/jl87/")
 
     cmd = "ssh -tt {0} '{1}' && stty sane".format(ip, cmd)
     print(cmd)
@@ -303,10 +305,10 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data the old way
-    if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
-        restore_rows(a_server_node["ip"], "data/1M")
+    #if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
+    #    restore_rows(a_server_node["ip"], "data/1M")
 
-    elif keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+    if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
         data_csv = os.path.join("/proj/cops-PG0/workspaces/jl87/data",
             data_csv_leaf)
