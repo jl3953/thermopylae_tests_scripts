@@ -80,7 +80,7 @@ def start_cockroach_node(node, other_urls=[]):
                "--external-io-dir={5} "
                "--background").format(
             EXE, ip, store, region, ",".join(n["ip"] for n in other_urls),
-            "/proj/cops-PG0/workspaces/jl87/"
+            "/mydata/"
         )
     else:
         cmd = ("{0} start-single-node --insecure "
@@ -93,7 +93,7 @@ def start_cockroach_node(node, other_urls=[]):
                "--http-addr=localhost:8080 "
                "--external-io-dir={4} "
                "--background").format(EXE, ip, store, region,
-               "/proj/cops-PG0/workspaces/jl87/")
+               "/mydata/")
 
     cmd = "ssh -tt {0} '{1}' && stty sane".format(ip, cmd)
     print(cmd)
@@ -310,7 +310,7 @@ def run_kv_workload(
 
     if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
-        data_csv = os.path.join("/proj/cops-PG0/workspaces/jl87/data",
+        data_csv = os.path.join("/mydata/data",
             data_csv_leaf)
         populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
             range_min=keyspace_min, payload_size=512,
@@ -338,7 +338,7 @@ def run_kv_workload(
         # nodelocal upload
         # tic = time.perf_counter()
         # for file in data_files:
-        #    local_file_location = "/proj/cops-PG0/workspaces/jl87/{0}".format(file)
+        #    local_file_location = "/mydata/{0}".format(file)
         #    crdb_file_location = file
         #    populate_crdb_data.upload_nodelocal(
         #        local_file_location, crdb_file_location,
