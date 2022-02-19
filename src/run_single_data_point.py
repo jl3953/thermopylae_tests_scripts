@@ -20,6 +20,8 @@ PREPROMOTION_EXE = os.path.join(
 )
 SNAPSHOT_THRESHOLD = 300000000
 
+NODELOCAL_DIR = "/proj/cops-PG0/workspaces/jl87"
+
 
 class RunMode(enum.Enum):
     WARMUP_ONLY = 1
@@ -80,7 +82,7 @@ def start_cockroach_node(node, other_urls=[]):
                "--external-io-dir={5} "
                "--background").format(
             EXE, ip, store, region, ",".join(n["ip"] for n in other_urls),
-            "/mydata/"
+            NODELOCAL_DIR
         )
     else:
         cmd = ("{0} start-single-node --insecure "
@@ -92,8 +94,7 @@ def start_cockroach_node(node, other_urls=[]):
                "--log-file-verbosity=2 "
                "--http-addr=localhost:8080 "
                "--external-io-dir={4} "
-               "--background").format(EXE, ip, store, region,
-               "/mydata/")
+               "--background").format(EXE, ip, store, region, NODELOCAL_DIR)
 
     cmd = "ssh -tt {0} '{1}' && stty sane".format(ip, cmd)
     print(cmd)
@@ -310,8 +311,7 @@ def run_kv_workload(
 
     if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
-        data_csv = os.path.join("/mydata/data",
-            data_csv_leaf)
+        data_csv = os.path.join(NODELOCAL_DIR, "data", data_csv_leaf)
         populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
             range_min=keyspace_min, payload_size=512,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding)
