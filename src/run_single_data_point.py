@@ -18,7 +18,7 @@ import time
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
 )
-SNAPSHOT_THRESHOLD = 300000000
+SNAPSHOT_THRESHOLD = 100000000
 
 NODELOCAL_DIR = "/proj/cops-PG0/workspaces/jl87"
 
