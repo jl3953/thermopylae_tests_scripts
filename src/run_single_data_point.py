@@ -209,8 +209,8 @@ def prepromote_keys(
         ) for server_node in server_nodes]
     )
 
-    update_smdbrpc_repo = "cd /root/smdbrpc; git stash; git pull origin " \
-                          "demotehotkeys; /root/smdbrpc/generate_new_protos.sh"
+    update_smdbrpc_repo = "cd /root/smdbrpc && git stash && git pull origin " \
+                          "demotehotkeys && /root/smdbrpc/generate_new_protos.sh"
 
     cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch={1} " \
           "--cicadaAddr={2} " \
