@@ -20,7 +20,7 @@ PREPROMOTION_EXE = os.path.join(
 )
 SNAPSHOT_THRESHOLD = 100000000
 
-NODELOCAL_DIR = "/proj/cops-PG0/workspaces/jl87"
+NODELOCAL_DIR = "/mydata"
 
 
 class RunMode(enum.Enum):
