@@ -371,10 +371,10 @@ def run_kv_workload(
                   "enable_fixed_sized_encoding=false")
             sys.exit(-1)
 
-        restore_rows(a_server_node["ip"], "data/jenndebug")
+        restore_rows(a_server_node["ip"], "snapshots/100M")
 
     else:
-        print("keyspace larger than 300M, unsupported")
+        print("keyspace larger than", SNAPSHOT_THRESHOLD, "unsupported")
         sys.exit(-1)
 
     # prepromote keys, if necessary
