@@ -20,21 +20,22 @@ class ConfigObject:
         self.trials = [1]
 
         # cluster
-        self.cockroach_commit = ["sqlite"]
-        self.num_warm_nodes = [7]
-        self.num_workload_nodes = [1]
+        self.cockroach_commit = ["cloudlab"]
+        self.num_warm_nodes = [3]
+        self.num_workload_nodes = [3]
         self.driver_node_ip_enum = [1]
         self.generate_latency_throughput = [True]
+        self.warm_nodes_eq_workload_nodes = [True]
 
         # self.workload_nodes = [] # to be populated
         # self.warm_nodes = [] # to be populated
-        self.hot_node = [vars(node.Node(1))]  # 192.168.1.?? of hotnode
+        self.hot_node = [vars(node.Node(12))]  # 192.168.1.?? of hotnode
         self.hot_node_port = [50051]
-        self.hot_node_commit_branch = ["async"]
-        self.hot_node_concurrency = ["56"]
+        self.hot_node_commit_branch = ["cloudlab"]
+        self.hot_node_concurrency = [16]
         self.crdb_grpc_port = [50055]
         self.prepromote_min = [0]
-        self.prepromote_max = [1000000]
+        self.prepromote_max = [40000000]
         self.hot_key_threshold = [-1]
         self.should_create_partition = [False]
         self.disable_cores = [0]
@@ -43,15 +44,15 @@ class ConfigObject:
         self.hash_randomize_keyspace = [True]
         self.enable_fixed_sized_encoding = [True]
         self.name = ["kv"]
-        self.keyspace = [1000000]
+        self.keyspace = [100000000]
         # self.concurrency = [] # to be populated
-        self.warm_up_duration = [10]  # in seconds
-        self.duration = [2]  # in seconds
-        self.read_percent = [100]  # percentage
-        self.n_keys_per_statement = [6]
+        self.warm_up_duration = [120]  # in seconds
+        self.duration = [60]  # in seconds
+        self.read_percent = [95]  # percentage
+        self.n_keys_per_statement = [1]
         self.use_original_zipfian = [False]
         self.distribution_type = ["zipf"]
-        self.skews = [0]
+        self.skews = [0.01, 0.99, 1.2]
 
     def generate_config_combinations(self):
         """Generates the trial configuration parameters for a single run, lists all in a list of dicts.
@@ -69,17 +70,22 @@ class ConfigObject:
             combinations.append(config_dict)
 
         for config_dict in combinations:
-            driver_node_ip_enum = config_dict["driver_node_ip_enum"]
-            num_workload_nodes = config_dict["num_workload_nodes"]
-            num_warm_nodes = config_dict["num_warm_nodes"]
 
+            # see if this is a scalability experiment
+            num_workload_nodes = config_dict["num_workload_nodes"]
+            if config_dict["warm_nodes_eq_workload_nodes"]:
+                num_workload_nodes = config_dict["num_warm_nodes"]
+
+            driver_node_ip_enum = config_dict["driver_node_ip_enum"]
             workload_nodes, ending_enum = ConfigObject.enumerate_workload_nodes(
-                driver_node_ip_enum, num_workload_nodes)
+                driver_node_ip_enum, num_workload_nodes, 12)
             config_dict["workload_nodes"] = [vars(n) for n in workload_nodes]
 
+            num_warm_nodes = config_dict["num_warm_nodes"]
             starting_server_node = ending_enum + 1
-            warm_nodes = ConfigObject.enumerate_warm_nodes(num_warm_nodes, starting_server_node)
+            warm_nodes = ConfigObject.enumerate_warm_nodes(num_warm_nodes, starting_server_node, 12)
             config_dict["warm_nodes"] = [vars(n) for n in warm_nodes]
+
 
         return combinations
 

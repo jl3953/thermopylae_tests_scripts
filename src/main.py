@@ -31,7 +31,7 @@ CONFIG_OBJ_LIST = [(trial_config_object_1.ConfigObject(),
 unique_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 DB_DIR = os.path.join(
     os.getcwd(),
-    "scratch/data_therm_100M_40M_10keys_{0}".format(unique_suffix)
+    "scratch/data_therm_scalability_100M_40M_1key_{0}".format(unique_suffix)
 )
 
 
@@ -141,20 +141,30 @@ def main():
                     )
                 )
 
-                if cfg["skews"] <= 0.01:
-                    cfg["concurrency"] = 40
-                elif cfg["skews"] <= 0.99:
-                    cfg["concurrency"] = 48
+                if cfg["num_warm_nodes"] == 1:
+                    if cfg["skews"] <= 0.01:
+                        cfg["concurrency"] = 80
+                    else:
+                        cfg["concurrency"] = 96
+                elif cfg["num_warm_nodes"] == 2:
+                    if cfg["skews"] <= 0.99:
+                        cfg["concurrency"] = 64
+                    else:
+                        cfg["concurrency"] = 80
+                elif cfg["num_warm_nodes"] == 3:
+                    cfg["concurrency"] = 80
                 else:
-                    cfg["concurrency"] = 64
+                    if cfg["skews"] <= 0.99:
+                        cfg["concurrency"] = 64
+                    else:
+                        cfg["concurrency"] = 96
 
                 if cfg["generate_latency_throughput"]:
                     # generate latency throughput trials
                     lt_fpath_csv = latency_throughput.run(cfg, lt_cfg, logs_dir)
 
                     # run trial
-                    cfg[
-                        "concurrency"] = \
+                    cfg["concurrency"] = \
                         latency_throughput.find_optimal_concurrency(
                         lt_fpath_csv
                     )
