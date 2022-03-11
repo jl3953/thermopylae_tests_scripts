@@ -38,9 +38,10 @@ DB_DIR = os.path.join(
 ######## end of configs #############
 
 
-def generate_dir_name(config_fpath, db_dir):
-    config_file = os.path.basename(config_fpath)
-    config_name = config_file.split('.')[0]
+def generate_dir_name(db_dir, **kwargs):
+    config_name = "_".join(
+        ["{1}{0}".format(value, key) for key, value in kwargs.items()]
+    )
     dir_name = os.path.join(db_dir, config_name)
 
     return dir_name
@@ -129,7 +130,8 @@ def main():
             try:
                 # make directory in which trial will be run
                 logs_dir = generate_dir_name(
-                    cfg[constants.CONFIG_FPATH_KEY], db_dir
+                    db_dir, keys=cfg["n_keys_per_statement"],
+                    nodes=cfg["num_warm_nodes"], skew=cfg["skews"]
                 )
                 if not os.path.exists(logs_dir):
                     os.makedirs(logs_dir)
@@ -164,7 +166,8 @@ def main():
                     lt_fpath_csv = latency_throughput.run(cfg, lt_cfg, logs_dir)
 
                     # run trial
-                    cfg["concurrency"] = \
+                    cfg[
+                        "concurrency"] = \
                         latency_throughput.find_optimal_concurrency(
                         lt_fpath_csv
                     )
