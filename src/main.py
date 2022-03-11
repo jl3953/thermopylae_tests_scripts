@@ -187,6 +187,7 @@ def main():
                             constants.CONFIG_FPATH_KEY], "lt_fpath": lt_fpath
                     }], failed_configs_csv
                 )
+                exit(-1)
 
         db.close()
         mail.email_success()
