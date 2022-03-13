@@ -78,6 +78,10 @@ def main():
     parser.add_argument("--recovery_mode", action="store_true")
     parser.add_argument("--recovery_file")
     parser.add_argument("--db_dir")
+    parser.add_argument(
+        "--continue_on_failure", action="store_true", default=False,
+        help="main halts entire trial on throwing exception"
+    )
     args = parser.parse_args()
     assert_args_are_correct(args)
 
@@ -200,7 +204,8 @@ def main():
                             constants.CONFIG_FPATH_KEY], "lt_fpath": lt_fpath
                     }], failed_configs_csv
                 )
-                exit(-1)
+                if not args.continue_on_failure:
+                    exit(-1)
 
         db.close()
         mail.email_success()
