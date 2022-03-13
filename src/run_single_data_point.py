@@ -20,8 +20,6 @@ PREPROMOTION_EXE = os.path.join(
 )
 SNAPSHOT_THRESHOLD = 100000000
 
-NODELOCAL_DIR = "/mydata"
-
 
 class RunMode(enum.Enum):
     WARMUP_ONLY = 1
@@ -65,7 +63,7 @@ def build_cockroachdb_commit(nodes, commit_hash):
         process.wait()
 
 
-def start_cockroach_node(node, other_urls=[]):
+def start_cockroach_node(node, nodelocal_dir, other_urls=[]):
     ip = node["ip"]
     store = node["store"]
     region = node["region"]
@@ -82,7 +80,7 @@ def start_cockroach_node(node, other_urls=[]):
                "--external-io-dir={5} "
                "--background").format(
             EXE, ip, store, region, ",".join(n["ip"] for n in other_urls),
-            NODELOCAL_DIR
+            nodelocal_dir
         )
     else:
         cmd = ("{0} start-single-node --insecure "
@@ -94,14 +92,14 @@ def start_cockroach_node(node, other_urls=[]):
                "--log-file-verbosity=2 "
                "--http-addr=localhost:8080 "
                "--external-io-dir={4} "
-               "--background").format(EXE, ip, store, region, NODELOCAL_DIR)
+               "--background").format(EXE, ip, store, region, nodelocal_dir)
 
     cmd = "ssh -tt {0} '{1}' && stty sane".format(ip, cmd)
     print(cmd)
     return subprocess.Popen(cmd, shell=True)
 
 
-def start_cluster(nodes):
+def start_cluster(nodes, nodelocal_dir):
     # first = nodes[0]
     # start_cockroach_node(first).wait()
 
@@ -112,7 +110,8 @@ def start_cluster(nodes):
         # set_cluster_settings_on_single_node(first)
         node = nodes[i]
 
-        processes.append(start_cockroach_node(node, other_urls=nodes))
+        processes.append(start_cockroach_node(node,
+            nodelocal_dir, other_urls=nodes))
 
     for process in processes:
         process.wait()
@@ -268,7 +267,7 @@ def run_kv_workload(
     client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
     duration, read_percent, n_keys_per_statement, skew, log_dir,
     prepromote_min, prepromote_max, hot_node, hot_node_port,
-    crdb_grpc_port, keyspace_min=0,
+    crdb_grpc_port, nodelocal_dir, keyspace_min=0,
     mode=RunMode.WARMUP_AND_TRIAL_RUN,
     hash_randomize_keyspace=True, enable_fixed_sized_encoding=True
 ):
@@ -311,7 +310,7 @@ def run_kv_workload(
 
     if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
-        data_csv = os.path.join(NODELOCAL_DIR, "data", data_csv_leaf)
+        data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
         populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
             range_min=keyspace_min, payload_size=512,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding)
@@ -490,7 +489,10 @@ def run(config, log_dir, write_cicada_log=True):
 
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
-    start_cluster(server_nodes)
+    nodelocal_dir = "/mydata"
+    if keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+        nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
+    start_cluster(server_nodes, nodelocal_dir)
     set_cluster_settings_on_single_node(server_nodes[0])
 
     # build and start client nodes
@@ -507,7 +509,7 @@ def run(config, log_dir, write_cicada_log=True):
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
             prepromote_min, prepromote_max, hot_node, hot_node_port,
-            crdb_grpc_port,
+            crdb_grpc_port, nodelocal_dir,
             keyspace_min=min_key,
             hash_randomize_keyspace=hash_randomize_keyspace,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding
