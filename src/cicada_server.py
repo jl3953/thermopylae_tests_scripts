@@ -45,7 +45,8 @@ def run_server(server_node, concurrency, log_dir, num_rows_in_dbs, write_log=Tru
     if write_log:
         cicada_log = os.path.join(log_fpath, "cicada_log.txt")
         with open(cicada_log, "w") as f:
-            process = subprocess.Popen(shlex.split(ssh_wrapped_cmd), stdout=f)
+            process = subprocess.Popen(shlex.split(ssh_wrapped_cmd),
+                stdout=f, stderr=f)
     else:
         process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
 
