@@ -59,15 +59,15 @@ def run(config, lt_config, log_dir):
                 concurrency_list = []
         else:
             if config["num_warm_nodes"] == 1:
-                print(1)
+                concurrency_list = [8, 16, 24, 32, 48, 56]
             elif config["num_warm_nodes"] == 2:
-                print(2)
+                concurrency_list = [8, 12, 16, 24, 32, 48, 56]
             elif config["num_warm_nodes"] == 4:
-                print(4)
+                concurrency_list = [8, 16, 24, 32, 48, 56, 64]
             elif config["num_warm_nodes"] == 8:
-                print(8)
+                concurrency_list = [8, 16, 32, 48, 64, 80]
             elif config["num_warm_nodes"] == 16:
-                print(16)
+                concurrency_list = [8, 16, 32, 48, 64, 80, 96]
     elif config["skews"] == 0.99:
         if config["hot_node"] is not None:
             if config["num_warm_nodes"] == 1:
@@ -80,15 +80,15 @@ def run(config, lt_config, log_dir):
                 concurrency_list = [24, 32, 40, 48, 56, 64]
         else:
             if config["num_warm_nodes"] == 1:
-                print(1)
+                concurrency_list = [8, 16, 24, 32, 48, 56, 64]
             elif config["num_warm_nodes"] == 2:
-                print(2)
+                concurrency_list = [2, 4, 8, 16, 24, 36]
             elif config["num_warm_nodes"] == 4:
-                print(4)
+                concurrency_list = [2, 4, 6, 8, 10, 12]
             elif config["num_warm_nodes"] == 8:
-                print(8)
+                concurrency_list = [1, 2, 3, 4, 5, 6]
             elif config["num_warm_nodes"] == 16:
-                print(16)
+                concurrency_list = [1, 2, 3, 4, 5, 6]
     elif config["skews"] == 1.2:
         if config["hot_node"] is not None: # Thermopylae
             if config["num_warm_nodes"] == 1:
@@ -101,15 +101,18 @@ def run(config, lt_config, log_dir):
                 concurrency_list = [16, 24, 32, 40, 48, 56]
         else: # CRDB
             if config["num_warm_nodes"] == 1:
-                print(1)
+                concurrency_list = [2, 4, 6, 7, 8, 10, 12]
             elif config["num_warm_nodes"] == 2:
-                print(2)
+                concurrency_list = [2, 4, 6, 8, 10, 12]
             elif config["num_warm_nodes"] == 4:
-                print(4)
+                concurrency_list = [2, 4, 6, 8, 10, 12]
             elif config["num_warm_nodes"] == 8:
-                print(8)
+                # one fourth the number of clients
+                concurrency_list = [1, 2, 3, 4, 5, 6]
             elif config["num_warm_nodes"] == 16:
-                print(16)
+                # one fourth the number of clients
+                concurrency_list = [1, 2, 3, 4, 5, 6]
+
     else:
         print("skew or num machines not set")
         raise Exception("skew or num machines not set")
