@@ -48,7 +48,7 @@ def run(config, lt_config, log_dir):
     print("start", type(start), "end", type(end), "step_size", type(step_size))
     concurrency_list = [i for i in range(8, 128, 8)]
     if config["skews"] == 0.01:
-        if config["hot_node"] is not None:
+        if "hot_node" in config:
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [16, 32, 40, 48, 64, 120]
             elif config["num_warm_nodes"] == 3:
@@ -69,7 +69,7 @@ def run(config, lt_config, log_dir):
             elif config["num_warm_nodes"] == 16:
                 concurrency_list = [8, 16, 32, 48, 64, 80, 96]
     elif config["skews"] == 0.99:
-        if config["hot_node"] is not None:
+        if "hot_node" in config:
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [32, 40, 48, 64, 96, 120]
             elif config["num_warm_nodes"] == 3:
@@ -90,7 +90,7 @@ def run(config, lt_config, log_dir):
             elif config["num_warm_nodes"] == 16:
                 concurrency_list = [1, 2, 3, 4, 5, 6]
     elif config["skews"] == 1.2:
-        if config["hot_node"] is not None: # Thermopylae
+        if "hot_node" in config: # Thermopylae
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [32, 40, 48, 64, 96, 120]
             elif config["num_warm_nodes"] == 3:
