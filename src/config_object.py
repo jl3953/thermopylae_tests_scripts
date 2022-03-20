@@ -26,6 +26,7 @@ class ConfigObject:
         self.driver_node_ip_enum = [1]
         self.generate_latency_throughput = [True]
         self.warm_nodes_eq_workload_nodes = [True]
+        self.discrete_warmup_and_trial = [True]
 
         # self.workload_nodes = [] # to be populated
         # self.warm_nodes = [] # to be populated

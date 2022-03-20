@@ -110,8 +110,11 @@ def start_cluster(nodes, nodelocal_dir):
         # set_cluster_settings_on_single_node(first)
         node = nodes[i]
 
-        processes.append(start_cockroach_node(node,
-            nodelocal_dir, other_urls=nodes))
+        processes.append(
+            start_cockroach_node(
+                node, nodelocal_dir, other_urls=nodes
+            )
+        )
 
     for process in processes:
         process.wait()
@@ -195,13 +198,11 @@ def kill_cockroachdb_node(node):
 
 
 def prepromote_keys(
-    hot_node, hot_node_port, server_nodes, server_nodes_port, key_min,
-    key_max, keyspace, hash_randomize_keyspace, enable_fixed_sized_encoding,
-    batch=5000
+    hot_node, hot_node_port, server_nodes, server_nodes_port, key_min, key_max,
+    keyspace, hash_randomize_keyspace, enable_fixed_sized_encoding, batch=5000
 ):
-
     cicadaAddr = ":".join([hot_node["ip"], str(hot_node_port)])
-    #cicadaAddr = "node-11:50051"
+    # cicadaAddr = "node-11:50051"
     crdbAddrs = ",".join(
         [":".join(
             [server_node["ip"], str(server_nodes_port)]
@@ -209,7 +210,8 @@ def prepromote_keys(
     )
 
     update_smdbrpc_repo = "cd /root/smdbrpc && git stash && git pull origin " \
-                          "demotehotkeys && /root/smdbrpc/generate_new_protos.sh"
+                          "demotehotkeys && " \
+                          "/root/smdbrpc/generate_new_protos.sh"
 
     cmd = "cd /root/smdbrpc/go; /usr/local/go/bin/go run {0} --batch={1} " \
           "--cicadaAddr={2} " \
@@ -249,10 +251,10 @@ def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
 
 
 def restore_rows(server_node, snapshot_name):
-
     drop_table = "DROP TABLE kv;"
     restore_table = "RESTORE kv.kv FROM \\\"nodelocal://1/{0}\\\";".format(
-        snapshot_name)
+        snapshot_name
+    )
 
     drop_table_crdb_cmd = 'echo "{0}" | {1} sql --insecure --database ' \
                           'kv'.format(drop_table, EXE)
@@ -265,11 +267,11 @@ def restore_rows(server_node, snapshot_name):
 
 def run_kv_workload(
     client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
-    duration, read_percent, n_keys_per_statement, skew, log_dir,
-    prepromote_min, prepromote_max, hot_node, hot_node_port,
-    crdb_grpc_port, nodelocal_dir, keyspace_min=0,
-    mode=RunMode.WARMUP_AND_TRIAL_RUN,
-    hash_randomize_keyspace=True, enable_fixed_sized_encoding=True
+    duration, read_percent, n_keys_per_statement, skew, log_dir, prepromote_min,
+    prepromote_max, hot_node, hot_node_port, crdb_grpc_port, nodelocal_dir,
+    discrete_warmup_and_trial, keyspace_min=0,
+    mode=RunMode.WARMUP_AND_TRIAL_RUN, hash_randomize_keyspace=True,
+    enable_fixed_sized_encoding=True
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -278,12 +280,13 @@ def run_kv_workload(
     args = ["--concurrency {}".format(int(concurrency)),
             "--read-percent={}".format(read_percent),
             "--batch={}".format(n_keys_per_statement),
-            "--zipfian --s={}".format(skew),
-            "--keyspace={}".format(keyspace),
+            "--zipfian --s={}".format(skew), "--keyspace={}".format(keyspace),
             "--hash_randomize_keyspace={}".format(hash_randomize_keyspace),
             "--enable_fixed_sized_encoding={}".format(
-                enable_fixed_sized_encoding),
-            ]
+                enable_fixed_sized_encoding
+            ), "--ramp={}".format(
+            0 if discrete_warmup_and_trial else warm_up_duration
+        )]
     # cmd = "{0} workload run kv {1} {2} --useOriginal=False".format(EXE,
     # " ".join(server_urls), " ".join(args))
 
@@ -305,33 +308,42 @@ def run_kv_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data the old way
-    #if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
+    # if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
     #    restore_rows(a_server_node["ip"], "data/1M")
 
     if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         data_csv_leaf = "init_data.csv.gz"
         data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
-        populate_crdb_data.write_keyspace_to_file(data_csv, keyspace+1,
-            range_min=keyspace_min, payload_size=512,
-            enable_fixed_sized_encoding=enable_fixed_sized_encoding)
+        populate_crdb_data.write_keyspace_to_file(
+            data_csv, keyspace + 1, range_min=keyspace_min, payload_size=512,
+            enable_fixed_sized_encoding=enable_fixed_sized_encoding
+                      )
         nfs_location = "data/{0}".format(data_csv_leaf)
-        # upload_cmd = "{0} nodelocal upload {1} {2} --host={3} --insecure".format(
+        # upload_cmd = "{0} nodelocal upload {1} {2} --host={3}
+        # --insecure".format(
         #     EXE, data_csv, nfs_location, a_server_node["ip"])
         # system_utils.call(upload_cmd)
-        import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(\\\"nodelocal://1/{1}\\\");" | ' \
-                     "{0} sql --insecure --database=kv".format(EXE, nfs_location)
+        import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(' \
+                     '\\\"nodelocal://1/{1}\\\");" | ' \
+                     "{0} sql --insecure --database=kv".format(
+            EXE, nfs_location
+        )
         system_utils.call_remote(a_server_node["ip"], import_cmd)
 
     elif keyspace < SNAPSHOT_THRESHOLD:
         if enable_fixed_sized_encoding is False:
-            print("don't have preset files for "
-                  "enable_fixed_sized_encoding=false")
+            print(
+                "don't have preset files for "
+                "enable_fixed_sized_encoding=false"
+            )
             sys.exit(-1)
 
         # prepopulate data
-        num_files = math.ceil(keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE)
-        data_files = ["populate1B._{0}.csv.gz".format(i)
-                      for i in range(num_files+1)]
+        num_files = math.ceil(
+            keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
+            )
+        data_files = ["populate1B._{0}.csv.gz".format(i) for i in
+                      range(num_files + 1)]
         print("number of files to import:", num_files)
 
         # nodelocal upload
@@ -352,7 +364,7 @@ def run_kv_workload(
                     a_server_node["ip"], data_files[i - 10: i]
                 )
                 toc = time.perf_counter()
-                print(f"elapsed {toc - tic:0.4f} seconds, imported", i-10, i)
+                print(f"elapsed {toc - tic:0.4f} seconds, imported", i - 10, i)
 
         remaining_files = num_files % 10
         if remaining_files > 0:
@@ -361,13 +373,17 @@ def run_kv_workload(
                 a_server_node["ip"], data_files[-remaining_files:]
             )
             toc = time.perf_counter()
-            print(f"elapsed {toc - tic:0.4f} seconds, imported",
-                num_files-remaining_files, num_files)
+            print(
+                f"elapsed {toc - tic:0.4f} seconds, imported",
+                num_files - remaining_files, num_files
+                )
 
     elif keyspace == SNAPSHOT_THRESHOLD:
         if enable_fixed_sized_encoding is False:
-            print("don't have preset population files for "
-                  "enable_fixed_sized_encoding=false")
+            print(
+                "don't have preset population files for "
+                "enable_fixed_sized_encoding=false"
+            )
             sys.exit(-1)
 
         restore_rows(a_server_node["ip"], "snapshots/100M")
@@ -381,11 +397,13 @@ def run_kv_workload(
         time.sleep(5)
         prepromote_keys(
             hot_node, hot_node_port, server_nodes, crdb_grpc_port,
-            prepromote_min, prepromote_max, keyspace,
-            hash_randomize_keyspace, enable_fixed_sized_encoding
+            prepromote_min, prepromote_max, keyspace, hash_randomize_keyspace,
+            enable_fixed_sized_encoding
         )
 
-    if mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
+    if (
+        mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
+        and discrete_warmup_and_trial:
 
         # run warmup
         # warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
@@ -452,6 +470,7 @@ def run(config, log_dir, write_cicada_log=True):
     server_nodes = config["warm_nodes"]
     client_nodes = config["workload_nodes"]
     commit_hash = config["cockroach_commit"]
+    discrete_warmup_and_trial = config["discrete_warmup_and_trial"]
     hot_node = config["hot_node"] if "hot_node" in config else None
     hot_node_port = config[
         "hot_node_port"] if "hot_node_port" in config else None
@@ -509,7 +528,7 @@ def run(config, log_dir, write_cicada_log=True):
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
             prepromote_min, prepromote_max, hot_node, hot_node_port,
-            crdb_grpc_port, nodelocal_dir,
+            crdb_grpc_port, nodelocal_dir, discrete_warmup_and_trial,
             keyspace_min=min_key,
             hash_randomize_keyspace=hash_randomize_keyspace,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding
