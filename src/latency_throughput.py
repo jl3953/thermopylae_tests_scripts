@@ -50,9 +50,9 @@ def run(config, lt_config, log_dir):
     if config["skews"] == 0.01:
         if "hot_node" in config:
             if config["num_warm_nodes"] == 1:
-                concurrency_list = [16, 32, 40, 48, 64, 120]
+                concurrency_list = [24, 32, 36, 40, 48, 64, 80, 96, 120]
             elif config["num_warm_nodes"] == 3:
-                concurrency_list = [28, 36, 48, 80, 96, 120]
+                concurrency_list = [20, 28, 36, 48, 56, 64, 72, 80, 96, 104]
             elif config["num_warm_nodes"] == 7:
                 concurrency_list = []
             elif config["num_warm_nodes"] == 15:
@@ -71,13 +71,13 @@ def run(config, lt_config, log_dir):
     elif config["skews"] == 0.99:
         if "hot_node" in config:
             if config["num_warm_nodes"] == 1:
-                concurrency_list = [32, 40, 48, 64, 96, 120]
+                concurrency_list = [32, 40, 48, 56, 64, 80, 96, 120]
             elif config["num_warm_nodes"] == 3:
-                concurrency_list = [32, 40, 48, 64, 80, 96, 120]
+                concurrency_list = [40, 48, 56, 60, 64, 68, 72, 80, 96, 120]
             elif config["num_warm_nodes"] == 7:
-                concurrency_list = [32, 40, 48, 56, 64, 80, 120]
+                concurrency_list = []
             elif config["num_warm_nodes"] == 15:
-                concurrency_list = [24, 32, 40, 48, 56, 64]
+                concurrency_list = []
         else:
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [8, 16, 24, 32, 48, 56, 64]
@@ -92,13 +92,13 @@ def run(config, lt_config, log_dir):
     elif config["skews"] == 1.2:
         if "hot_node" in config: # Thermopylae
             if config["num_warm_nodes"] == 1:
-                concurrency_list = [32, 40, 48, 64, 96, 120]
+                concurrency_list = [40, 48, 56, 64, 72, 80, 88, 96, 120]
             elif config["num_warm_nodes"] == 3:
-                concurrency_list = [32, 40, 48, 64, 96, 120]
+                concurrency_list = [40, 48, 56, 64, 72, 80, 88, 96, 120]
             elif config["num_warm_nodes"] == 7:
-                concurrency_list = [32, 40, 48, 56, 64, 80, 120]
+                concurrency_list = []
             elif config["num_warm_nodes"] == 15:
-                concurrency_list = [16, 24, 32, 40, 48, 56]
+                concurrency_list = []
         else: # CRDB
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [2, 4, 6, 7, 8, 10, 12]
