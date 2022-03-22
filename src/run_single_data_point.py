@@ -284,7 +284,7 @@ def run_kv_workload(
             "--hash_randomize_keyspace={}".format(hash_randomize_keyspace),
             "--enable_fixed_sized_encoding={}".format(
                 enable_fixed_sized_encoding
-            ), "--ramp={}".format(
+            ), "--ramp={}s".format(
             0 if discrete_warmup_and_trial else warm_up_duration
         )]
     # cmd = "{0} workload run kv {1} {2} --useOriginal=False".format(EXE,
