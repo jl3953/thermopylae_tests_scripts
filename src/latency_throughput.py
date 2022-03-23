@@ -54,9 +54,9 @@ def run(config, lt_config, log_dir):
             elif config["num_warm_nodes"] == 3:
                 concurrency_list = [20, 28, 36, 48, 56, 64, 72, 80, 96, 104]
             elif config["num_warm_nodes"] == 7:
-                concurrency_list = []
+                concurrency_list = [12, 16, 32, 40, 48, 56, 80]
             elif config["num_warm_nodes"] == 15:
-                concurrency_list = []
+                concurrency_list = [16, 24, 32, 48, 64, 80]
         else:
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [8, 10, 12, 14, 16, 20, 24, 32]
