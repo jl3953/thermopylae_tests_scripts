@@ -75,9 +75,9 @@ def run(config, lt_config, log_dir):
             elif config["num_warm_nodes"] == 3:
                 concurrency_list = [40, 48, 56, 60, 64, 68, 72, 80, 96, 120]
             elif config["num_warm_nodes"] == 7:
-                concurrency_list = []
+                concurrency_list = [40, 48, 56, 64, 72, 80, 96, 120]
             elif config["num_warm_nodes"] == 15:
-                concurrency_list = []
+                concurrency_list = [16, 20, 24, 28, 32, 36, 40, 48, 56]
         else:
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [8, 16, 20, 24, 28, 32, 40, 48, 56]
@@ -96,9 +96,9 @@ def run(config, lt_config, log_dir):
             elif config["num_warm_nodes"] == 3:
                 concurrency_list = [40, 48, 56, 64, 72, 80, 88, 96, 120]
             elif config["num_warm_nodes"] == 7:
-                concurrency_list = []
+                concurrency_list = [36, 40, 48, 56, 64, 72, 80]
             elif config["num_warm_nodes"] == 15:
-                concurrency_list = []
+                concurrency_list = [16, 18, 20, 24, 28, 32, 40, 48]
         else: # CRDB
             if config["num_warm_nodes"] == 1:
                 concurrency_list = [(halve), 8, 12, 14, 16, 18, 20, 24]
