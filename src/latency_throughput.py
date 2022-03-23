@@ -117,23 +117,26 @@ def run(config, lt_config, log_dir):
         print("skew or num machines not set")
         raise Exception("skew or num machines not set")
     for concurrency in concurrency_list:
-        # run trial for this concurrency
-        config["concurrency"] = concurrency
+        try:
+            # run trial for this concurrency
+            config["concurrency"] = concurrency
 
-        # make directory for this specific concurrency, unique by timestamp
-        specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
-            str(concurrency), datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
+            # make directory for this specific concurrency, unique by timestamp
+            specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
+                str(concurrency), datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
 
-        # run trial
-        os.makedirs(specific_logs_dir)
-        results_fpath_csv = run_single_data_point.run(config,
-            specific_logs_dir, write_cicada_log=False)
+            # run trial
+            os.makedirs(specific_logs_dir)
+            results_fpath_csv = run_single_data_point.run(config,
+                specific_logs_dir, write_cicada_log=False)
 
-        # gather data from this run
-        datum = {"concurrency": concurrency}
-        more_data = csv_utils.read_in_data(results_fpath_csv)
-        datum.update(*more_data)
-        data.append(datum)
+            # gather data from this run
+            datum = {"concurrency": concurrency}
+            more_data = csv_utils.read_in_data(results_fpath_csv)
+            datum.update(*more_data)
+            data.append(datum)
+        except BaseException:
+            print("jenndebug move the fuck on")
 
     # find max throughput and hone in on it
     max_throughput_concurrency = max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
