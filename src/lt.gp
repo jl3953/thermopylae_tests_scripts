@@ -10,8 +10,8 @@ set ylabel "p50 (ms)"
 set title "latency throughput (p50)"
 set output ARG2
 set offset 1, 1, 1, 1
-plot ARG1 using "ops/sec(inst)":"p50(ms)" with linespoint,\
-		 "" using "ops/sec(inst)":"p50(ms)":"concurrency" with labels point pt 7 offset char 1, 1 notitle
+plot ARG1 using "ops/sec(cum)":"p50(ms)" with linespoint,\
+		 "" using "ops/sec(cum)":"p50(ms)":"concurrency" with labels point pt 7 offset char 1, 1 notitle
 
 #set ylabel "p95 (ms)"
 #set title "latency throughput (p95)"
