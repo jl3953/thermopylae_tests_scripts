@@ -150,23 +150,23 @@ def main():
                     )
                 )
 
-                if cfg["num_warm_nodes"] == 1:
-                    if cfg["skews"] <= 0.01:
-                        cfg["concurrency"] = 80
-                    else:
-                        cfg["concurrency"] = 96
-                elif cfg["num_warm_nodes"] == 2:
-                    if cfg["skews"] <= 0.99:
-                        cfg["concurrency"] = 64
-                    else:
-                        cfg["concurrency"] = 80
-                elif cfg["num_warm_nodes"] == 3:
-                    cfg["concurrency"] = 80
-                else:
-                    if cfg["skews"] <= 0.99:
-                        cfg["concurrency"] = 64
-                    else:
-                        cfg["concurrency"] = 96
+                # if cfg["num_warm_nodes"] == 1:
+                #     if cfg["skews"] <= 0.01:
+                #         cfg["concurrency"] = 80
+                #     else:
+                #         cfg["concurrency"] = 96
+                # elif cfg["num_warm_nodes"] == 2:
+                #     if cfg["skews"] <= 0.99:
+                #         cfg["concurrency"] = 64
+                #     else:
+                #         cfg["concurrency"] = 80
+                # elif cfg["num_warm_nodes"] == 3:
+                #     cfg["concurrency"] = 80
+                # else:
+                #     if cfg["skews"] <= 0.99:
+                #         cfg["concurrency"] = 64
+                #     else:
+                #         cfg["concurrency"] = 96
 
                 if cfg["generate_latency_throughput"]:
                     # generate latency throughput trials
