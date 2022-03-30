@@ -112,10 +112,10 @@ def run(config, lt_config, log_dir):
     #         elif config["num_warm_nodes"] == 16:
     #             # one fourth the number of clients
     #             concurrency_list = [1, 2, 3, 4, 5, 6, 7, 8]
-
-    else:
-        print("skew or num machines not set")
-        raise Exception("skew or num machines not set")
+    #
+    # else:
+    #     print("skew or num machines not set")
+    #     raise Exception("skew or num machines not set")
     for concurrency in concurrency_list:
         try:
             # run trial for this concurrency
