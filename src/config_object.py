@@ -57,8 +57,10 @@ class ConfigObject:
         self.skews = [0.01, 0.99, 1.2]
 
         # self.name = ["tpcc"]
+        # self.warehouses = [10]
         # self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
         #             "stockLevel=1"]
+        # self.init_with_fixture = [False]
         # self.wait = [False]
         #### notes to run tpcc
         # just comment out the hot_node for now

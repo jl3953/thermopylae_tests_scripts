@@ -495,7 +495,6 @@ def run_tpcc_workload(
             0 if discrete_warmup_and_trial else warm_up_duration
         ), "--wait={}".format(1 if wait else 0)]
 
-
     # init tpcc
     driver_node = client_nodes[0]
     init_tpcc(server_urls[0], driver_node, init_with_fixture, warehouses)
