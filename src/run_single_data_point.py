@@ -317,7 +317,7 @@ def run_kv_workload(
         populate_crdb_data.write_keyspace_to_file(
             data_csv, keyspace + 1, range_min=keyspace_min, payload_size=512,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding
-                      )
+        )
         nfs_location = "data/{0}".format(data_csv_leaf)
         # upload_cmd = "{0} nodelocal upload {1} {2} --host={3}
         # --insecure".format(
@@ -341,7 +341,7 @@ def run_kv_workload(
         # prepopulate data
         num_files = math.ceil(
             keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
-            )
+        )
         data_files = ["populate1B._{0}.csv.gz".format(i) for i in
                       range(num_files + 1)]
         print("number of files to import:", num_files)
@@ -376,7 +376,7 @@ def run_kv_workload(
             print(
                 f"elapsed {toc - tic:0.4f} seconds, imported",
                 num_files - remaining_files, num_files
-                )
+            )
 
     elif keyspace == SNAPSHOT_THRESHOLD:
         if enable_fixed_sized_encoding is False:
@@ -466,6 +466,118 @@ def run_kv_workload(
         return bench_log_files
 
 
+def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
+    init_cmd = "{0} workload init tpcc " \
+               "--warehouses={1} " \
+               "{2}".format(EXE, warehouses, server_node)
+    if init_with_fixture:
+        init_cmd = "{0} workload fixtures import tpcc " \
+                   "--warehouses {1} " \
+                   "{2}".format(EXE, warehouses, server_node)
+    system_utils.call_remote(driver_node["ip"], init_cmd)
+
+
+def promote_keys_in_tpcc():
+    pass
+
+
+def run_tpcc_workload(
+    client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
+    duration, mix, discrete_warmup_and_trial, init_with_fixture, warehouses,
+    wait, mode=RunMode.WARMUP_AND_TRIAL_RUN
+):
+    server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
+                   for n in server_nodes]
+
+    # warmup and trial run commands are the same
+    args = ["--concurrency {}".format(int(concurrency)),
+            "--mix='{}'".format(mix), "--ramp={}s".format(
+            0 if discrete_warmup_and_trial else warm_up_duration
+        ), "--wait={}".format(1 if wait else 0)]
+
+
+    # init tpcc
+    driver_node = client_nodes[0]
+    init_tpcc(server_urls[0], driver_node, init_with_fixture, warehouses)
+
+    # set database settings
+    a_server_node = server_nodes[0]
+    settings_cmd = 'echo "alter range default configure zone using ' \
+                   'num_replicas = 1;" | ' \
+                   '{0} sql --insecure --database=kv ' \
+                   '--url="postgresql://root@{1}?sslmode=disable"'.format(
+        EXE, a_server_node["ip"]
+    )
+    system_utils.call_remote(driver_node["ip"], settings_cmd)
+
+    # promote keys
+    promote_keys_in_tpcc()
+
+    if (
+        mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
+        and discrete_warmup_and_trial:
+
+        # run warmup
+        # warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
+        warmup_processes = []
+        for i in range(len(client_nodes)):
+            node = client_nodes[i]
+            cmd = "{0} workload run tpcc {1} {2} ".format(
+                EXE, server_urls[i % len(server_nodes)], " ".join(args)
+            )
+            warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
+            # for node in client_nodes:
+            individual_node_cmd = "sudo ssh {0} '{1}'".format(
+                node["ip"], warmup_cmd
+            )
+            print(individual_node_cmd)
+            warmup_processes.append(
+                subprocess.Popen(shlex.split(individual_node_cmd))
+            )
+
+        for wp in warmup_processes:
+            wp.wait()
+
+    if mode == RunMode.TRIAL_RUN_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN:
+
+        # making the logs directory, if it doesn't already exist
+        log_fpath = os.path.join(log_dir, "logs")
+        if not os.path.exists(log_fpath):
+            os.makedirs(log_fpath)
+
+        # run trial
+        # trial_cmd = cmd + " --duration={}s".format(duration)
+        trial_processes = []
+        bench_log_files = []
+        for i in range(len(client_nodes)):
+            node = client_nodes[i]
+            cmd = "{0} workload run tpcc {1} {2} ".format(
+                EXE, server_urls[i % len(server_nodes)], " ".join(args)
+            )
+            trial_cmd = cmd + " --duration={}s".format(duration)
+            # for node in client_nodes:
+            # logging output for each node
+            individual_log_fpath = os.path.join(
+                log_fpath, "bench_{}.txt".format(node["ip"])
+            )
+            bench_log_files.append(individual_log_fpath)
+
+            # run command
+            individual_node_cmd = "sudo ssh {0} '{1}'".format(
+                node["ip"], trial_cmd
+            )
+            print(individual_node_cmd)
+            with open(individual_log_fpath, "w") as f:
+                trial_processes.append(
+                    subprocess.Popen(shlex.split(individual_node_cmd), stdout=f)
+                )
+
+        for tp in trial_processes:
+            tp.wait()
+
+        return bench_log_files
+
+
 def run(config, log_dir, write_cicada_log=True):
     server_nodes = config["warm_nodes"]
     client_nodes = config["workload_nodes"]
@@ -516,14 +628,14 @@ def run(config, log_dir, write_cicada_log=True):
 
     # build and start client nodes
     results_fpath = ""
+    warm_up_duration = config["warm_up_duration"]
+    duration = config["duration"]
+    concurrency = config["concurrency"]
     if config["name"] == "kv":
 
-        warm_up_duration = config["warm_up_duration"]
-        duration = config["duration"]
         read_percent = config["read_percent"]
         n_keys_per_statement = config["n_keys_per_statement"]
         skew = config["skews"]
-        concurrency = config["concurrency"]
         bench_log_files = run_kv_workload(
             client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
             duration, read_percent, n_keys_per_statement, skew, log_dir,
@@ -539,6 +651,35 @@ def run(config, log_dir, write_cicada_log=True):
         more_data, has_data = gather.gather_data_from_raw_kv_logs(
             bench_log_files
         )
+        if not has_data:
+            raise RuntimeError(
+                "Config {0} has failed to produce any results".format(
+                    config[constants.CONFIG_FPATH_KEY]
+                )
+            )
+        data.update(more_data)
+
+        # write out csv file
+        results_fpath = os.path.join(log_dir, "results.csv")
+        _ = csv_utils.write_out_data([data], results_fpath)
+
+    elif config["name"] == "tpcc":
+        warehouses = config["warehouses"]
+        mix = config["mix"]
+        init_with_fixture = config["init_with_fixture"]
+        wait = config["wait"]
+        bench_log_files = run_tpcc_workload(
+            client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
+            duration, mix, discrete_warmup_and_trial, init_with_fixture,
+            warehouses, wait
+        )
+
+        # create csv file of gathered data
+        data = {"concurrency": config["concurrency"]}
+        more_data, has_data = gather.gather_data_from_raw_tpcc_logs(
+            bench_log_files
+        )
+
         if not has_data:
             raise RuntimeError(
                 "Config {0} has failed to produce any results".format(

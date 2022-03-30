@@ -12,7 +12,8 @@ class ConfigObject:
 
     def __init__(self):
 
-        ##### JENN, WARNING: IF YOU ADD A KEY HERE, ADD IT TO THE SQLITE TABLE TOO ####
+        ##### JENN, WARNING: IF YOU ADD A KEY HERE, ADD IT TO THE SQLITE
+        # TABLE TOO ####
 
         # default
         self.logs_dir = ["test"]
@@ -40,6 +41,8 @@ class ConfigObject:
         self.hot_key_threshold = [-1]
         self.should_create_partition = [False]
         self.disable_cores = [0]
+        self.warm_up_duration = [120]  # in seconds
+        self.duration = [60]  # in seconds
 
         # benchmark
         self.hash_randomize_keyspace = [True]
@@ -47,16 +50,22 @@ class ConfigObject:
         self.name = ["kv"]
         self.keyspace = [100000000]
         # self.concurrency = [] # to be populated
-        self.warm_up_duration = [120]  # in seconds
-        self.duration = [60]  # in seconds
         self.read_percent = [95]  # percentage
         self.n_keys_per_statement = [1]
         self.use_original_zipfian = [False]
         self.distribution_type = ["zipf"]
         self.skews = [0.01, 0.99, 1.2]
 
+        # self.name = ["tpcc"]
+        # self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
+        #             "stockLevel=1"]
+        # self.wait = [False]
+        #### notes to run tpcc
+        # just comment out the hot_node for now
+
     def generate_config_combinations(self):
-        """Generates the trial configuration parameters for a single run, lists all in a list of dicts.
+        """Generates the trial configuration parameters for a single run,
+        lists all in a list of dicts.
 
     :return: a list of dictionaries of combinations
     """
@@ -79,26 +88,33 @@ class ConfigObject:
 
             driver_node_ip_enum = config_dict["driver_node_ip_enum"]
             workload_nodes, ending_enum = ConfigObject.enumerate_workload_nodes(
-                driver_node_ip_enum, num_workload_nodes, 12)
+                driver_node_ip_enum, num_workload_nodes, 12
+            )
             config_dict["workload_nodes"] = [vars(n) for n in workload_nodes]
 
             num_warm_nodes = config_dict["num_warm_nodes"]
             starting_server_node = ending_enum + 1
-            warm_nodes = ConfigObject.enumerate_warm_nodes(num_warm_nodes, starting_server_node, 12)
+            warm_nodes = ConfigObject.enumerate_warm_nodes(
+                num_warm_nodes, starting_server_node, 12
+            )
             config_dict["warm_nodes"] = [vars(n) for n in warm_nodes]
-
 
         return combinations
 
     def generate_all_config_files(self):
-        """Generates all configuration files with different combinations of parameters.
+        """Generates all configuration files with different combinations of
+        parameters.
     :return:
     """
         ini_fpaths = []
         config_combos = self.generate_config_combinations()
         for config_dict in config_combos:
-            ini_fpath = ConfigObject.generate_ini_filename(suffix=config_dict["logs_dir"])
-            ini_fpaths.append(config_io.write_config_to_file(config_dict, ini_fpath))
+            ini_fpath = ConfigObject.generate_ini_filename(
+                suffix=config_dict["logs_dir"]
+            )
+            ini_fpaths.append(
+                config_io.write_config_to_file(config_dict, ini_fpath)
+            )
 
         return ini_fpaths
 
@@ -118,7 +134,9 @@ class ConfigObject:
         return os.path.join(constants.TEST_CONFIG_PATH, ini)
 
     @staticmethod
-    def enumerate_workload_nodes(driver_node_ip_enum, num_workload_nodes, *args):
+    def enumerate_workload_nodes(
+        driver_node_ip_enum, num_workload_nodes, *args
+        ):
         """ Populates workload nodes.
     :rtype: List(Node)
     :param driver_node_ip_enum: (int) enum that driver node starts at
