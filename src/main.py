@@ -133,9 +133,12 @@ def main():
 
             try:
                 # make directory in which trial will be run
+                # logs_dir = generate_dir_name(
+                #     db_dir, keys=cfg["n_keys_per_statement"],
+                #     nodes=cfg["num_warm_nodes"], skew=cfg["skews"]
+                # )
                 logs_dir = generate_dir_name(
-                    db_dir, keys=cfg["n_keys_per_statement"],
-                    nodes=cfg["num_warm_nodes"], skew=cfg["skews"]
+                    db_dir, warehouses=cfg["warehouses"]
                 )
                 if not os.path.exists(logs_dir):
                     os.makedirs(logs_dir)
