@@ -1,5 +1,6 @@
 import collections
 import re
+import sys
 
 
 def extract_data(last_eight_lines):
@@ -171,3 +172,7 @@ def main():
     data = gather_data_from_raw_tpcc_logs(log_fpaths)
     for k, v in data:
         print(k, v)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
