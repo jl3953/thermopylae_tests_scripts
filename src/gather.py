@@ -145,12 +145,12 @@ def gather_data_from_raw_tpcc_logs(log_fpaths):
         with open(path, "r") as f:
             # read lines backwards in pairs
 
-            try:
-                datum = extract_tpcc_data(f.readlines())
-                acc.append(datum)
-            except BaseException as e:
-                print("failed to extract data: {0}, {1}".format(path, e))
-                return None, False
+            # try:
+            datum = extract_tpcc_data(f.readlines())
+            acc.append(
+                datum
+            )  # except BaseException as e:  #     print("failed to extract
+            # data: {0}, {1}".format(path, e))  #     return None, False
 
     final_datum = aggregate(acc)
     return final_datum, True
