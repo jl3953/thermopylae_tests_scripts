@@ -170,8 +170,8 @@ def main():
                   '/latency_throughput/logs/8_20220330_145105_854800/logs'
                   '/bench_192.168.1.3.txt']
     data = gather_data_from_raw_tpcc_logs(log_fpaths)
-    for k, v in data:
-        print(k, v)
+    print(data)
+
 
 
 if __name__ == "__main__":
