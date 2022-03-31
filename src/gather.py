@@ -127,11 +127,11 @@ def extract_tpcc_data(lines):
         elif len(line) == 0:
             continue
         elif "result" in line:
-            datum += parse(line, prev_line)
+            datum.update(parse(line, prev_line))
         elif "__total" in line:
             types_of_txns_left -= 1
             if len(prev_line) > 0:
-                datum += parse(line, prev_line)
+                datum.update(parse(line, prev_line))
         else:
             prev_line = line
 
