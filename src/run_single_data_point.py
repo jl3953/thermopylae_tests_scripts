@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import shlex
@@ -5,6 +6,9 @@ import subprocess
 import sys
 
 import enum
+
+import grpc
+import psycopg2
 
 import cicada_server
 import constants
@@ -14,6 +18,8 @@ import gather
 import populate_crdb_data
 import system_utils
 import time
+
+from src import smdbrpc_pb2, smdbrpc_pb2_grpc
 
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
@@ -477,8 +483,65 @@ def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
     system_utils.call_remote(driver_node["ip"], init_cmd)
 
 
-def promote_keys_in_tpcc():
-    pass
+def query_table_num_from_names(names, host="localhost"):
+    db_url = "postgresql://root@{}:26257?sslmode=disable".format(host)
+
+    conn = psycopg2.connect(db_url, database="tpcc")
+
+    mapping = {}
+    with conn.cursor() as cur:
+        for table_name in names:
+
+            query = "SELECT '\"{}\"'::regclass::oid;".format(table_name)
+            print(query)
+
+            cur.execute(query)
+            logging.debug("status message %s", cur.statusmessage)
+
+            rows = cur.fetchall()
+            if len(rows) > 1:
+                print("fetchall should only have one row")
+                sys.exit(-1)
+
+            mapping[table_name] = rows[0][0]
+
+        conn.commit()
+
+    return mapping
+
+
+def promote_keys_in_tpcc(crdb_nodes, num_warehouses):
+    # populate CRDB table numbers
+    tableNames = ["warehouse", "stock", "item", "history", "new_order",
+                  "order_line", "district", "customer", "order"]
+    mapping = query_table_num_from_names(tableNames)
+
+    req = smdbrpc_pb2.PopulateCRDBTableNumMappingReq(
+        tableNumMappings=[], )
+    for tableName, tableNum in mapping.items():
+        req.tableNumMappings.append(
+            smdbrpc_pb2.TableNumMapping(
+                tableNum=tableNum, tableName=tableName, )
+        )
+
+    for n in crdb_nodes:
+
+        # populate CRDB table numbers
+        channel = grpc.insecure_channel("{}:50055".format(n.ip))
+        stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
+
+        _ = stub.PopulateCRDBTableNumMapping(req)
+
+        # promote warehouse
+
+        promotion_req = smdbrpc_pb2.TestPromoteTPCCTablesReq(
+            num_warehouses=num_warehouses, warehouse=True, district=False,
+            customer=False,
+            order=False, neworder=False, orderline=False, stock=False,
+            item=False, history=False
+        )
+        _ = stub.TestPromoteTPCCTables(promotion_req)
+
 
 
 def run_tpcc_workload(
@@ -510,7 +573,7 @@ def run_tpcc_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # promote keys
-    promote_keys_in_tpcc()
+    promote_keys_in_tpcc(server_nodes, warehouses)
 
     if (
         mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \

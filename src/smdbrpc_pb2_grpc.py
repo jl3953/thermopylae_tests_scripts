@@ -7,6 +7,7 @@ import smdbrpc_pb2 as smdbrpc__pb2
 
 class HotshardGatewayStub(object):
     """The greeting service definition.
+    Sends a greeting
     """
 
     def __init__(self, channel):
@@ -15,20 +16,312 @@ class HotshardGatewayStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.BatchSendTxns = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/BatchSendTxns',
+                request_serializer=smdbrpc__pb2.BatchSendTxnsReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.BatchSendTxnsResp.FromString,
+                )
+        self.CalculateCicadaStats = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/CalculateCicadaStats',
+                request_serializer=smdbrpc__pb2.CalculateCicadaReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.CalculateCicadaStatsResp.FromString,
+                )
         self.ContactHotshard = channel.unary_unary(
                 '/smdbrpc.HotshardGateway/ContactHotshard',
                 request_serializer=smdbrpc__pb2.HotshardRequest.SerializeToString,
                 response_deserializer=smdbrpc__pb2.HotshardReply.FromString,
                 )
+        self.DemoteKey = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/DemoteKey',
+                request_serializer=smdbrpc__pb2.KeyMigrationReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.KeyMigrationResp.FromString,
+                )
+        self.DemoteKeys = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/DemoteKeys',
+                request_serializer=smdbrpc__pb2.MultiKeyMigrationReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.MultiKeyMigrationResp.FromString,
+                )
+        self.DeleteFromInProgressDemotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/DeleteFromInProgressDemotionMap',
+                request_serializer=smdbrpc__pb2.DeleteFromInProgressDemotionMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.DeleteFromInProgressDemotionMapResp.FromString,
+                )
+        self.DeleteFromPromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/DeleteFromPromotionMap',
+                request_serializer=smdbrpc__pb2.DeleteFromPromotionMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.DeleteFromPromotionMapResp.FromString,
+                )
+        self.LockPromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/LockPromotionMap',
+                request_serializer=smdbrpc__pb2.LockPromotionMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.LockPromotionMapResp.FromString,
+                )
+        self.PopulateCRDBTableNumMapping = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/PopulateCRDBTableNumMapping',
+                request_serializer=smdbrpc__pb2.PopulateCRDBTableNumMappingReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.PopulateCRDBTableNumMappingResp.FromString,
+                )
+        self.PromoteKey = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/PromoteKey',
+                request_serializer=smdbrpc__pb2.KeyMigrationReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.KeyMigrationResp.FromString,
+                )
+        self.PromoteKeys = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/PromoteKeys',
+                request_serializer=smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.PromoteKeysResp.FromString,
+                )
+        self.PromoteKeysToCicada = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/PromoteKeysToCicada',
+                request_serializer=smdbrpc__pb2.PromoteKeysToCicadaReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.PromoteKeysToCicadaResp.FromString,
+                )
+        self.QueryTableNumFromName = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/QueryTableNumFromName',
+                request_serializer=smdbrpc__pb2.QueryTableNumFromNameReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.QueryTableNumFromNameResp.FromString,
+                )
+        self.UnlockPromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/UnlockPromotionMap',
+                request_serializer=smdbrpc__pb2.UnlockPromotionMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.UnlockPromotionMapResp.FromString,
+                )
+        self.UpdatePromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/UpdatePromotionMap',
+                request_serializer=smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.PromoteKeysResp.FromString,
+                )
+        self.UpdatePromotionMapWithoutLocking = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/UpdatePromotionMapWithoutLocking',
+                request_serializer=smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.PromoteKeysResp.FromString,
+                )
+        self.UpdateInProgressDemotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/UpdateInProgressDemotionMap',
+                request_serializer=smdbrpc__pb2.UpdateInProgressDemotionMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.UpdateInProgressDemotionMapResp.FromString,
+                )
+        self.RequestCRDBKeyStats = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/RequestCRDBKeyStats',
+                request_serializer=smdbrpc__pb2.KeyStatsRequest.SerializeToString,
+                response_deserializer=smdbrpc__pb2.CRDBKeyStatsResponse.FromString,
+                )
+        self.SendTxn = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/SendTxn',
+                request_serializer=smdbrpc__pb2.TxnReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TxnResp.FromString,
+                )
+        self.TriggerDemotionByNums = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TriggerDemotionByNums',
+                request_serializer=smdbrpc__pb2.TriggerDemotionByNumsReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TriggerDemotionByNumsResp.FromString,
+                )
+        self.TriggerDemotion = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TriggerDemotion',
+                request_serializer=smdbrpc__pb2.TriggerDemotionRequest.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TriggerDemotionReply.FromString,
+                )
+        self.TestAddKeyToPromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TestAddKeyToPromotionMap',
+                request_serializer=smdbrpc__pb2.TestPromotionKeyReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TestPromotionKeyResp.FromString,
+                )
+        self.TestIsKeyInPromotionMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TestIsKeyInPromotionMap',
+                request_serializer=smdbrpc__pb2.TestPromotionKeyReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TestPromotionKeyResp.FromString,
+                )
+        self.TestPromoteTPCCTables = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TestPromoteTPCCTables',
+                request_serializer=smdbrpc__pb2.TestPromoteTPCCTablesReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.TestPromoteTPCCTablesResp.FromString,
+                )
+        self.TestSendTxn = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TestSendTxn',
+                request_serializer=smdbrpc__pb2.CRDBTxnReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.CRDBTxnResp.FromString,
+                )
+        self.TestQueryTableMap = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/TestQueryTableMap',
+                request_serializer=smdbrpc__pb2.QueryTableMapReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.QueryTableMapResp.FromString,
+                )
+        self.RequestCicadaStats = channel.unary_unary(
+                '/smdbrpc.HotshardGateway/RequestCicadaStats',
+                request_serializer=smdbrpc__pb2.CalculateCicadaReq.SerializeToString,
+                response_deserializer=smdbrpc__pb2.CicadaStatsResponse.FromString,
+                )
 
 
 class HotshardGatewayServicer(object):
     """The greeting service definition.
+    Sends a greeting
     """
 
-    def ContactHotshard(self, request, context):
-        """Sends a greeting
+    def BatchSendTxns(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CalculateCicadaStats(self, request, context):
+        """Asks Cicada whether it will 1) only demote keys, 2) only request CRDB promotions,
+        or 3) ask CRDB to trigger demotions and promotions
         """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ContactHotshard(self, request, context):
+        """a txn to the hotshard
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DemoteKey(self, request, context):
+        """(singular) Demotes a key from Cicada to CRDB
+        (multiple) Demotes multiple keys from Cicada to CRDB (this essentially calls
+        DemoteKey, but the asynchronous batching is handled on Cicada's side
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DemoteKeys(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteFromInProgressDemotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteFromPromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def LockPromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PopulateCRDBTableNumMapping(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PromoteKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PromoteKeys(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PromoteKeysToCicada(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def QueryTableNumFromName(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UnlockPromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdatePromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdatePromotionMapWithoutLocking(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateInProgressDemotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RequestCRDBKeyStats(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendTxn(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TriggerDemotionByNums(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TriggerDemotion(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TestAddKeyToPromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TestIsKeyInPromotionMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TestPromoteTPCCTables(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TestSendTxn(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def TestQueryTableMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RequestCicadaStats(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -36,10 +329,140 @@ class HotshardGatewayServicer(object):
 
 def add_HotshardGatewayServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'BatchSendTxns': grpc.unary_unary_rpc_method_handler(
+                    servicer.BatchSendTxns,
+                    request_deserializer=smdbrpc__pb2.BatchSendTxnsReq.FromString,
+                    response_serializer=smdbrpc__pb2.BatchSendTxnsResp.SerializeToString,
+            ),
+            'CalculateCicadaStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.CalculateCicadaStats,
+                    request_deserializer=smdbrpc__pb2.CalculateCicadaReq.FromString,
+                    response_serializer=smdbrpc__pb2.CalculateCicadaStatsResp.SerializeToString,
+            ),
             'ContactHotshard': grpc.unary_unary_rpc_method_handler(
                     servicer.ContactHotshard,
                     request_deserializer=smdbrpc__pb2.HotshardRequest.FromString,
                     response_serializer=smdbrpc__pb2.HotshardReply.SerializeToString,
+            ),
+            'DemoteKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.DemoteKey,
+                    request_deserializer=smdbrpc__pb2.KeyMigrationReq.FromString,
+                    response_serializer=smdbrpc__pb2.KeyMigrationResp.SerializeToString,
+            ),
+            'DemoteKeys': grpc.unary_unary_rpc_method_handler(
+                    servicer.DemoteKeys,
+                    request_deserializer=smdbrpc__pb2.MultiKeyMigrationReq.FromString,
+                    response_serializer=smdbrpc__pb2.MultiKeyMigrationResp.SerializeToString,
+            ),
+            'DeleteFromInProgressDemotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteFromInProgressDemotionMap,
+                    request_deserializer=smdbrpc__pb2.DeleteFromInProgressDemotionMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.DeleteFromInProgressDemotionMapResp.SerializeToString,
+            ),
+            'DeleteFromPromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteFromPromotionMap,
+                    request_deserializer=smdbrpc__pb2.DeleteFromPromotionMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.DeleteFromPromotionMapResp.SerializeToString,
+            ),
+            'LockPromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.LockPromotionMap,
+                    request_deserializer=smdbrpc__pb2.LockPromotionMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.LockPromotionMapResp.SerializeToString,
+            ),
+            'PopulateCRDBTableNumMapping': grpc.unary_unary_rpc_method_handler(
+                    servicer.PopulateCRDBTableNumMapping,
+                    request_deserializer=smdbrpc__pb2.PopulateCRDBTableNumMappingReq.FromString,
+                    response_serializer=smdbrpc__pb2.PopulateCRDBTableNumMappingResp.SerializeToString,
+            ),
+            'PromoteKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.PromoteKey,
+                    request_deserializer=smdbrpc__pb2.KeyMigrationReq.FromString,
+                    response_serializer=smdbrpc__pb2.KeyMigrationResp.SerializeToString,
+            ),
+            'PromoteKeys': grpc.unary_unary_rpc_method_handler(
+                    servicer.PromoteKeys,
+                    request_deserializer=smdbrpc__pb2.PromoteKeysReq.FromString,
+                    response_serializer=smdbrpc__pb2.PromoteKeysResp.SerializeToString,
+            ),
+            'PromoteKeysToCicada': grpc.unary_unary_rpc_method_handler(
+                    servicer.PromoteKeysToCicada,
+                    request_deserializer=smdbrpc__pb2.PromoteKeysToCicadaReq.FromString,
+                    response_serializer=smdbrpc__pb2.PromoteKeysToCicadaResp.SerializeToString,
+            ),
+            'QueryTableNumFromName': grpc.unary_unary_rpc_method_handler(
+                    servicer.QueryTableNumFromName,
+                    request_deserializer=smdbrpc__pb2.QueryTableNumFromNameReq.FromString,
+                    response_serializer=smdbrpc__pb2.QueryTableNumFromNameResp.SerializeToString,
+            ),
+            'UnlockPromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.UnlockPromotionMap,
+                    request_deserializer=smdbrpc__pb2.UnlockPromotionMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.UnlockPromotionMapResp.SerializeToString,
+            ),
+            'UpdatePromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdatePromotionMap,
+                    request_deserializer=smdbrpc__pb2.PromoteKeysReq.FromString,
+                    response_serializer=smdbrpc__pb2.PromoteKeysResp.SerializeToString,
+            ),
+            'UpdatePromotionMapWithoutLocking': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdatePromotionMapWithoutLocking,
+                    request_deserializer=smdbrpc__pb2.PromoteKeysReq.FromString,
+                    response_serializer=smdbrpc__pb2.PromoteKeysResp.SerializeToString,
+            ),
+            'UpdateInProgressDemotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateInProgressDemotionMap,
+                    request_deserializer=smdbrpc__pb2.UpdateInProgressDemotionMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.UpdateInProgressDemotionMapResp.SerializeToString,
+            ),
+            'RequestCRDBKeyStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestCRDBKeyStats,
+                    request_deserializer=smdbrpc__pb2.KeyStatsRequest.FromString,
+                    response_serializer=smdbrpc__pb2.CRDBKeyStatsResponse.SerializeToString,
+            ),
+            'SendTxn': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendTxn,
+                    request_deserializer=smdbrpc__pb2.TxnReq.FromString,
+                    response_serializer=smdbrpc__pb2.TxnResp.SerializeToString,
+            ),
+            'TriggerDemotionByNums': grpc.unary_unary_rpc_method_handler(
+                    servicer.TriggerDemotionByNums,
+                    request_deserializer=smdbrpc__pb2.TriggerDemotionByNumsReq.FromString,
+                    response_serializer=smdbrpc__pb2.TriggerDemotionByNumsResp.SerializeToString,
+            ),
+            'TriggerDemotion': grpc.unary_unary_rpc_method_handler(
+                    servicer.TriggerDemotion,
+                    request_deserializer=smdbrpc__pb2.TriggerDemotionRequest.FromString,
+                    response_serializer=smdbrpc__pb2.TriggerDemotionReply.SerializeToString,
+            ),
+            'TestAddKeyToPromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestAddKeyToPromotionMap,
+                    request_deserializer=smdbrpc__pb2.TestPromotionKeyReq.FromString,
+                    response_serializer=smdbrpc__pb2.TestPromotionKeyResp.SerializeToString,
+            ),
+            'TestIsKeyInPromotionMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestIsKeyInPromotionMap,
+                    request_deserializer=smdbrpc__pb2.TestPromotionKeyReq.FromString,
+                    response_serializer=smdbrpc__pb2.TestPromotionKeyResp.SerializeToString,
+            ),
+            'TestPromoteTPCCTables': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestPromoteTPCCTables,
+                    request_deserializer=smdbrpc__pb2.TestPromoteTPCCTablesReq.FromString,
+                    response_serializer=smdbrpc__pb2.TestPromoteTPCCTablesResp.SerializeToString,
+            ),
+            'TestSendTxn': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestSendTxn,
+                    request_deserializer=smdbrpc__pb2.CRDBTxnReq.FromString,
+                    response_serializer=smdbrpc__pb2.CRDBTxnResp.SerializeToString,
+            ),
+            'TestQueryTableMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestQueryTableMap,
+                    request_deserializer=smdbrpc__pb2.QueryTableMapReq.FromString,
+                    response_serializer=smdbrpc__pb2.QueryTableMapResp.SerializeToString,
+            ),
+            'RequestCicadaStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestCicadaStats,
+                    request_deserializer=smdbrpc__pb2.CalculateCicadaReq.FromString,
+                    response_serializer=smdbrpc__pb2.CicadaStatsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -50,7 +473,42 @@ def add_HotshardGatewayServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class HotshardGateway(object):
     """The greeting service definition.
+    Sends a greeting
     """
+
+    @staticmethod
+    def BatchSendTxns(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/BatchSendTxns',
+            smdbrpc__pb2.BatchSendTxnsReq.SerializeToString,
+            smdbrpc__pb2.BatchSendTxnsResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CalculateCicadaStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/CalculateCicadaStats',
+            smdbrpc__pb2.CalculateCicadaReq.SerializeToString,
+            smdbrpc__pb2.CalculateCicadaStatsResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ContactHotshard(request,
@@ -66,5 +524,413 @@ class HotshardGateway(object):
         return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/ContactHotshard',
             smdbrpc__pb2.HotshardRequest.SerializeToString,
             smdbrpc__pb2.HotshardReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DemoteKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/DemoteKey',
+            smdbrpc__pb2.KeyMigrationReq.SerializeToString,
+            smdbrpc__pb2.KeyMigrationResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DemoteKeys(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/DemoteKeys',
+            smdbrpc__pb2.MultiKeyMigrationReq.SerializeToString,
+            smdbrpc__pb2.MultiKeyMigrationResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeleteFromInProgressDemotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/DeleteFromInProgressDemotionMap',
+            smdbrpc__pb2.DeleteFromInProgressDemotionMapReq.SerializeToString,
+            smdbrpc__pb2.DeleteFromInProgressDemotionMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeleteFromPromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/DeleteFromPromotionMap',
+            smdbrpc__pb2.DeleteFromPromotionMapReq.SerializeToString,
+            smdbrpc__pb2.DeleteFromPromotionMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def LockPromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/LockPromotionMap',
+            smdbrpc__pb2.LockPromotionMapReq.SerializeToString,
+            smdbrpc__pb2.LockPromotionMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def PopulateCRDBTableNumMapping(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/PopulateCRDBTableNumMapping',
+            smdbrpc__pb2.PopulateCRDBTableNumMappingReq.SerializeToString,
+            smdbrpc__pb2.PopulateCRDBTableNumMappingResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def PromoteKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/PromoteKey',
+            smdbrpc__pb2.KeyMigrationReq.SerializeToString,
+            smdbrpc__pb2.KeyMigrationResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def PromoteKeys(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/PromoteKeys',
+            smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+            smdbrpc__pb2.PromoteKeysResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def PromoteKeysToCicada(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/PromoteKeysToCicada',
+            smdbrpc__pb2.PromoteKeysToCicadaReq.SerializeToString,
+            smdbrpc__pb2.PromoteKeysToCicadaResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def QueryTableNumFromName(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/QueryTableNumFromName',
+            smdbrpc__pb2.QueryTableNumFromNameReq.SerializeToString,
+            smdbrpc__pb2.QueryTableNumFromNameResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UnlockPromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/UnlockPromotionMap',
+            smdbrpc__pb2.UnlockPromotionMapReq.SerializeToString,
+            smdbrpc__pb2.UnlockPromotionMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UpdatePromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/UpdatePromotionMap',
+            smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+            smdbrpc__pb2.PromoteKeysResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UpdatePromotionMapWithoutLocking(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/UpdatePromotionMapWithoutLocking',
+            smdbrpc__pb2.PromoteKeysReq.SerializeToString,
+            smdbrpc__pb2.PromoteKeysResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def UpdateInProgressDemotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/UpdateInProgressDemotionMap',
+            smdbrpc__pb2.UpdateInProgressDemotionMapReq.SerializeToString,
+            smdbrpc__pb2.UpdateInProgressDemotionMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def RequestCRDBKeyStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/RequestCRDBKeyStats',
+            smdbrpc__pb2.KeyStatsRequest.SerializeToString,
+            smdbrpc__pb2.CRDBKeyStatsResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendTxn(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/SendTxn',
+            smdbrpc__pb2.TxnReq.SerializeToString,
+            smdbrpc__pb2.TxnResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TriggerDemotionByNums(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TriggerDemotionByNums',
+            smdbrpc__pb2.TriggerDemotionByNumsReq.SerializeToString,
+            smdbrpc__pb2.TriggerDemotionByNumsResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TriggerDemotion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TriggerDemotion',
+            smdbrpc__pb2.TriggerDemotionRequest.SerializeToString,
+            smdbrpc__pb2.TriggerDemotionReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TestAddKeyToPromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TestAddKeyToPromotionMap',
+            smdbrpc__pb2.TestPromotionKeyReq.SerializeToString,
+            smdbrpc__pb2.TestPromotionKeyResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TestIsKeyInPromotionMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TestIsKeyInPromotionMap',
+            smdbrpc__pb2.TestPromotionKeyReq.SerializeToString,
+            smdbrpc__pb2.TestPromotionKeyResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TestPromoteTPCCTables(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TestPromoteTPCCTables',
+            smdbrpc__pb2.TestPromoteTPCCTablesReq.SerializeToString,
+            smdbrpc__pb2.TestPromoteTPCCTablesResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TestSendTxn(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TestSendTxn',
+            smdbrpc__pb2.CRDBTxnReq.SerializeToString,
+            smdbrpc__pb2.CRDBTxnResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def TestQueryTableMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/TestQueryTableMap',
+            smdbrpc__pb2.QueryTableMapReq.SerializeToString,
+            smdbrpc__pb2.QueryTableMapResp.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def RequestCicadaStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/smdbrpc.HotshardGateway/RequestCicadaStats',
+            smdbrpc__pb2.CalculateCicadaReq.SerializeToString,
+            smdbrpc__pb2.CicadaStatsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

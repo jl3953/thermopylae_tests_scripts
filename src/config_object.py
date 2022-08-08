@@ -31,8 +31,8 @@ class ConfigObject:
 
         # self.workload_nodes = [] # to be populated
         # self.warm_nodes = [] # to be populated
-        self.hot_node = [vars(node.Node(12))]  # 192.168.1.?? of hotnode
-        self.hot_node_port = [50051]
+        # self.hot_node = [vars(node.Node(12))]  # 192.168.1.?? of hotnode
+        # self.hot_node_port = [50051]
         self.hot_node_commit_branch = ["cloudlab"]
         self.hot_node_concurrency = [16]
         self.crdb_grpc_port = [50055]
@@ -44,24 +44,25 @@ class ConfigObject:
         self.warm_up_duration = [120]  # in seconds
         self.duration = [60]  # in seconds
 
-        # benchmark
-        self.hash_randomize_keyspace = [True]
-        self.enable_fixed_sized_encoding = [True]
-        self.name = ["kv"]
-        self.keyspace = [100000000]
-        # self.concurrency = [] # to be populated
-        self.read_percent = [95]  # percentage
-        self.n_keys_per_statement = [1]
-        self.use_original_zipfian = [False]
-        self.distribution_type = ["zipf"]
-        self.skews = [0.01, 0.99, 1.2]
+        # # benchmark
+        # self.hash_randomize_keyspace = [True]
+        # self.enable_fixed_sized_encoding = [True]
+        # self.name = ["kv"]
+        # self.keyspace = [100000000]
+        # # self.concurrency = [] # to be populated
+        # self.read_percent = [95]  # percentage
+        # self.n_keys_per_statement = [1]
+        # self.use_original_zipfian = [False]
+        # self.distribution_type = ["zipf"]
+        # self.skews = [0.01, 0.99, 1.2]
 
-        # self.name = ["tpcc"]
-        # self.warehouses = [10]
-        # self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
-        #             "stockLevel=1"]
-        # self.init_with_fixture = [False]
-        # self.wait = [False]
+        self.name = ["tpcc"]
+        self.warehouses = [10]
+        self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
+                    "stockLevel=1"]
+        self.init_with_fixture = [False]
+        self.wait = [False] # whether to sprinkle in "natural" pauses,
+                            # like user typing or thinking
         #### notes to run tpcc
         # just comment out the hot_node for now
 
