@@ -50,7 +50,7 @@ def run_server(server_node, concurrency, log_dir, num_rows_in_dbs, write_log=Tru
     else:
         process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
 
-    time.sleep(25)
+    time.sleep(5)
 
     return process
 
