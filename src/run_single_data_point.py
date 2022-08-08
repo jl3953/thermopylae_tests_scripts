@@ -19,7 +19,7 @@ import populate_crdb_data
 import system_utils
 import time
 
-from src import smdbrpc_pb2, smdbrpc_pb2_grpc
+import smdbrpc_pb2, smdbrpc_pb2_grpc
 
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
@@ -514,7 +514,7 @@ def promote_keys_in_tpcc(crdb_node, num_warehouses):
     # populate CRDB table numbers
     tableNames = ["warehouse", "stock", "item", "history", "new_order",
                   "order_line", "district", "customer", "order"]
-    mapping = query_table_num_from_names(tableNames)
+    mapping = query_table_num_from_names(tableNames, crdb_node["ip"])
 
     req = smdbrpc_pb2.PopulateCRDBTableNumMappingReq(
         tableNumMappings=[], )
@@ -525,7 +525,7 @@ def promote_keys_in_tpcc(crdb_node, num_warehouses):
         )
 
     # populate CRDB table numbers
-    channel = grpc.insecure_channel("{}:50055".format(crdb_node.ip))
+    channel = grpc.insecure_channel("{}:50055".format(crdb_node["ip"]))
     stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
 
     _ = stub.PopulateCRDBTableNumMapping(req)
@@ -647,14 +647,16 @@ def run(config, log_dir, write_cicada_log=True):
     hot_node_port = config[
         "hot_node_port"] if "hot_node_port" in config else None
     prepromote_min = config[
-        "prepromote_min"] if "prepromote_min" in config else None
+        "prepromote_min"] if "prepromote_min" in config else 0
     prepromote_max = config[
-        "prepromote_max"] if "prepromote_max" in config else None
+        "prepromote_max"] if "prepromote_max" in config else 0
     crdb_grpc_port = config[
         "crdb_grpc_port"] if "crdb_grpc_port" in config else None
-    hash_randomize_keyspace = config["hash_randomize_keyspace"]
-    enable_fixed_sized_encoding = config["enable_fixed_sized_encoding"]
-    keyspace = config["keyspace"]
+    hash_randomize_keyspace = config[
+        "hash_randomize_keyspace"] if "hash_randomize_keyspace" in config else None
+    enable_fixed_sized_encoding = config[
+        "enable_fixed_sized_encoding"] if "enable_fixed_sized_encoding" in config else None
+    keyspace = config["keyspace"] if "keyspace" in config else 0
 
     # hotkeys = config["hotkeys"]
 
