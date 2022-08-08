@@ -510,7 +510,7 @@ def query_table_num_from_names(names, host="localhost"):
     return mapping
 
 
-def promote_keys_in_tpcc(crdb_nodes, num_warehouses):
+def promote_keys_in_tpcc(crdb_node, num_warehouses):
     # populate CRDB table numbers
     tableNames = ["warehouse", "stock", "item", "history", "new_order",
                   "order_line", "district", "customer", "order"]
@@ -524,23 +524,21 @@ def promote_keys_in_tpcc(crdb_nodes, num_warehouses):
                 tableNum=tableNum, tableName=tableName, )
         )
 
-    for n in crdb_nodes:
+    # populate CRDB table numbers
+    channel = grpc.insecure_channel("{}:50055".format(crdb_node.ip))
+    stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
 
-        # populate CRDB table numbers
-        channel = grpc.insecure_channel("{}:50055".format(n.ip))
-        stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
+    _ = stub.PopulateCRDBTableNumMapping(req)
 
-        _ = stub.PopulateCRDBTableNumMapping(req)
+    # promote warehouse
 
-        # promote warehouse
-
-        promotion_req = smdbrpc_pb2.TestPromoteTPCCTablesReq(
-            num_warehouses=num_warehouses, warehouse=True, district=False,
-            customer=False,
-            order=False, neworder=False, orderline=False, stock=False,
-            item=False, history=False
-        )
-        _ = stub.TestPromoteTPCCTables(promotion_req)
+    promotion_req = smdbrpc_pb2.TestPromoteTPCCTablesReq(
+        num_warehouses=num_warehouses, warehouse=True, district=False,
+        customer=False,
+        order=False, neworder=False, orderline=False, stock=False,
+        item=False, history=False
+    )
+    _ = stub.TestPromoteTPCCTables(promotion_req)
 
 
 
@@ -573,7 +571,7 @@ def run_tpcc_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # promote keys
-    promote_keys_in_tpcc(server_nodes, warehouses)
+    promote_keys_in_tpcc(a_server_node, warehouses)
 
     if (
         mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
