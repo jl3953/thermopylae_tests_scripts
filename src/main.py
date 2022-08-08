@@ -150,24 +150,6 @@ def main():
                     )
                 )
 
-                # if cfg["num_warm_nodes"] == 1:
-                #     if cfg["skews"] <= 0.01:
-                #         cfg["concurrency"] = 80
-                #     else:
-                #         cfg["concurrency"] = 96
-                # elif cfg["num_warm_nodes"] == 2:
-                #     if cfg["skews"] <= 0.99:
-                #         cfg["concurrency"] = 64
-                #     else:
-                #         cfg["concurrency"] = 80
-                # elif cfg["num_warm_nodes"] == 3:
-                #     cfg["concurrency"] = 80
-                # else:
-                #     if cfg["skews"] <= 0.99:
-                #         cfg["concurrency"] = 64
-                #     else:
-                #         cfg["concurrency"] = 96
-
                 if cfg["generate_latency_throughput"]:
                     # generate latency throughput trials
                     lt_fpath_csv = latency_throughput.run(cfg, lt_cfg, logs_dir)
@@ -183,15 +165,25 @@ def main():
 
                 # insert into sqlite db
                 # TODO get the actual commit hash, not the branch
-                db.insert_csv_data_into_sqlite_table(
-                    "trials_table", results_fpath_csv, None, logs_dir=logs_dir,
-                    cockroach_commit=cfg["cockroach_commit"],
-                    server_nodes=cfg["num_warm_nodes"],
-                    disabled_cores=cfg["disable_cores"],
-                    keyspace=cfg["keyspace"], read_percent=cfg["read_percent"],
-                    n_keys_per_statement=cfg["n_keys_per_statement"],
-                    skews=cfg["skews"], prepromote_max=cfg["prepromote_max"]
-                )
+                if cfg["name"] == "kv":
+                    db.insert_csv_data_into_sqlite_table(
+                        "trials_table", results_fpath_csv, None, logs_dir=logs_dir,
+                        cockroach_commit=cfg["cockroach_commit"],
+                        server_nodes=cfg["num_warm_nodes"],
+                        disabled_cores=cfg["disable_cores"],
+                        keyspace=cfg["keyspace"], read_percent=cfg["read_percent"],
+                        n_keys_per_statement=cfg["n_keys_per_statement"],
+                        skews=cfg["skews"], prepromote_max=cfg["prepromote_max"]
+                    )
+                elif cfg["name"] == "tpcc":
+                    db.insert_csv_data_into_sqlite_table(
+                        "trials_table", results_fpath_csv, None, logs_dir=logs_dir,
+                        cockroach_commit=cfg["cockroach_commit"],
+                        server_nodes=cfg["num_warm_nodes"],
+                        warehouses=cfg["warehouses"],
+                        mix=cfg["mix"],
+                        wait=cfg["wait"]
+                    )
 
             except BaseException as e:
                 print(
