@@ -473,6 +473,7 @@ def run_kv_workload(
 
 
 def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
+    start = time.time()
     init_cmd = "{0} workload init tpcc " \
                "--warehouses={1} " \
                "{2}".format(EXE, warehouses, server_node)
@@ -481,6 +482,8 @@ def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
                    "--warehouses {1} " \
                    "{2}".format(EXE, warehouses, server_node)
     system_utils.call_remote(driver_node["ip"], init_cmd)
+    end = time.time()
+    print(end - start)
 
 
 def query_table_num_from_names(names, host="localhost"):
@@ -564,7 +567,7 @@ def run_tpcc_workload(
     a_server_node = server_nodes[0]
     settings_cmd = 'echo "alter range default configure zone using ' \
                    'num_replicas = 1;" | ' \
-                   '{0} sql --insecure --database=kv ' \
+                   '{0} sql --insecure ' \
                    '--url="postgresql://root@{1}?sslmode=disable"'.format(
         EXE, a_server_node["ip"]
     )

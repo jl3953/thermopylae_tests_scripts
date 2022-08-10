@@ -119,10 +119,10 @@ def import_into_crdb(server, nfs_locations):
     system_utils.call_remote(server, import_cmd)
 
 
-def snapshot(server, snapshot_name):
+def snapshot(server, snapshot_name, database):
     snapshot_cmd = 'echo "BACKUP TO \\\"nodelocal://1/{1}\\\";"' \
-                   ' | {0} sql --insecure --database=kv'\
-        .format(EXE, snapshot_name)
+                   ' | {0} sql --insecure --database={2}'\
+        .format(EXE, snapshot_name, database)
     system_utils.call_remote(server, snapshot_cmd)
 
 
