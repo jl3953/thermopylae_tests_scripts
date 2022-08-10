@@ -474,14 +474,17 @@ def run_kv_workload(
 
 def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
     start = time.time()
-    init_cmd = "{0} workload init tpcc " \
-               "--warehouses={1} " \
-               "{2}".format(EXE, warehouses, server_node)
-    if init_with_fixture:
-        init_cmd = "{0} workload fixtures import tpcc " \
-                   "--warehouses {1} " \
-                   "{2}".format(EXE, warehouses, server_node)
-    system_utils.call_remote(driver_node["ip"], init_cmd)
+    snapshot_name = "snapshots/tpcc{}".format(warehouses)
+    populate_crdb_data.restore(server_node, snapshot_name, "tpcc")
+    # init_cmd = "{0} workload init tpcc " \
+    #            "--warehouses={1} " \
+    #            "{2}".format(EXE, warehouses, server_node)
+    # if init_with_fixture:
+    #     init_cmd = "{0} workload fixtures import tpcc " \
+    #                "--warehouses {1} " \
+    #                "{2}".format(EXE, warehouses, server_node)
+    # system_utils.call_remote(driver_node["ip"], init_cmd)
+
     end = time.time()
     print(end - start)
 
@@ -686,6 +689,8 @@ def run(config, log_dir, write_cicada_log=True):
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
     nodelocal_dir = "/mydata"
+    if config["name"] == "tpcc":
+        nodelocal_dir = "/mydata"
     if keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)

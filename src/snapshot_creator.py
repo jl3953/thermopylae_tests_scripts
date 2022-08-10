@@ -11,14 +11,22 @@ def initialize_crdb(config):
     commit_hash = config["commit_hash"]
     run_single_data_point.cleanup_previous_experiments(server_nodes, [], None)
     run_single_data_point.build_cockroachdb_commit(server_nodes, commit_hash)
-    run_single_data_point.start_cluster(server_nodes)
-    run_single_data_point.set_cluster_settings([server_nodes[0]])
+    run_single_data_point.start_cluster(server_nodes, nodelocal_dir="/mydata")
+
+    server_node = server_nodes[0]
+    run_single_data_point.set_cluster_settings([server_node])
 
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
-    init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
-    driver_node = server_nodes[0]
-    system_utils.call_remote(driver_node["ip"], init_cmd)
+
+    if config["name"] == "kv":
+        init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
+        system_utils.call_remote(server_node["ip"], init_cmd)
+    elif config["name"] == "tpcc":
+        warehouses = config["warehouses"]
+        init_cmd = "{0} workload fixtures import tpcc --warehouses {1} {2}"\
+            .format(EXE, warehouses, server_node)
+        system_utils.call_remote(server_node["ip"], init_cmd)
 
 
 def main():
@@ -31,6 +39,7 @@ def main():
             }
             for i in range(1, 11)],
         "commit_hash": "new-cloudlab",
+        "name": "kv"
     }
 
     parser = argparse.ArgumentParser()
