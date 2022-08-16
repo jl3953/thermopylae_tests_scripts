@@ -63,6 +63,7 @@ class ConfigObject:
         self.init_with_fixture = [False]
         self.wait = [False] # whether to sprinkle in "natural" pauses,
                             # like user typing or thinking
+        self.promote_keys = [False]
         #### notes to run tpcc
         # just comment out the hot_node for now
 
