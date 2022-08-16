@@ -46,7 +46,7 @@ def run(config, lt_config, log_dir):
     data = []
     #while step_size > 0:
     print("start", type(start), "end", type(end), "step_size", type(step_size))
-    concurrency_list = [i for i in range(8, 16, 8)]
+    concurrency_list = [i for i in range(1, 24)]
     for concurrency in concurrency_list:
         try:
             # run trial for this concurrency
@@ -67,7 +67,7 @@ def run(config, lt_config, log_dir):
             datum.update(*more_data)
             data.append(datum)
         except BaseException as err:
-            print("jenndebug move the fuck on", err)
+            print("jenndebug latency throughput move on", err)
 
     # find max throughput and hone in on it
     max_throughput_concurrency = max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]

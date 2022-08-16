@@ -126,11 +126,11 @@ def snapshot(server, snapshot_name, database):
     system_utils.call_remote(server, snapshot_cmd)
 
 
-def restore(server, snapshot_name, database):
+def restore(ipaddr, snapshot_name, database):
 
     restore_cmd = 'echo "RESTORE DATABASE {2} FROM \\\"nodelocal://1/{1}\\\";"'\
                   ' | {0} sql --insecure'.format(EXE, snapshot_name, database)
-    system_utils.call_remote(server, restore_cmd)
+    system_utils.call_remote(ipaddr, restore_cmd)
 
 
 def main():

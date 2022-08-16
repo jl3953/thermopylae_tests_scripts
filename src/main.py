@@ -31,7 +31,7 @@ CONFIG_OBJ_LIST = [(trial_config_object_1.ConfigObject(),
 unique_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 DB_DIR = os.path.join(
     os.getcwd(),
-    "scratch/data_therm_scalability_100M_40M_1key_{0}".format(unique_suffix)
+    "scratch/tpcc_crdb_baseline_large_wh_{0}".format(unique_suffix)
 )
 
 

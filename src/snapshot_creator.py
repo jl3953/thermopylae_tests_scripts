@@ -24,8 +24,8 @@ def initialize_crdb(config):
         system_utils.call_remote(server_node["ip"], init_cmd)
     elif config["name"] == "tpcc":
         warehouses = config["warehouses"]
-        init_cmd = "{0} workload fixtures import tpcc --warehouses {1} {2}"\
-            .format(EXE, warehouses, server_node)
+        init_cmd = "{0} workload fixtures import tpcc --warehouses {1} postgres://root@{2}:26257?sslmode=disable"\
+            .format(EXE, warehouses, server_node["ip"])
         system_utils.call_remote(server_node["ip"], init_cmd)
 
 

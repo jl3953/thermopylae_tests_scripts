@@ -474,8 +474,8 @@ def run_kv_workload(
 
 def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
     start = time.time()
-    snapshot_name = "snapshots/tpcc{}".format(warehouses)
-    populate_crdb_data.restore(server_node, snapshot_name, "tpcc")
+    snapshot_name = "snapshot/tpcc{}".format(warehouses)
+    populate_crdb_data.restore(server_node["ip"], snapshot_name, "tpcc")
     # init_cmd = "{0} workload init tpcc " \
     #            "--warehouses={1} " \
     #            "{2}".format(EXE, warehouses, server_node)
@@ -551,7 +551,7 @@ def promote_keys_in_tpcc(crdb_node, num_warehouses):
 def run_tpcc_workload(
     client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
     duration, mix, discrete_warmup_and_trial, init_with_fixture, warehouses,
-    wait, mode=RunMode.WARMUP_AND_TRIAL_RUN
+    wait, promote_keys, mode=RunMode.WARMUP_AND_TRIAL_RUN
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -563,11 +563,11 @@ def run_tpcc_workload(
         ), "--wait={}".format(1 if wait else 0)]
 
     # init tpcc
+    a_server_node = server_nodes[0]
     driver_node = client_nodes[0]
-    init_tpcc(server_urls[0], driver_node, init_with_fixture, warehouses)
+    init_tpcc(a_server_node, driver_node, init_with_fixture, warehouses)
 
     # set database settings
-    a_server_node = server_nodes[0]
     settings_cmd = 'echo "alter range default configure zone using ' \
                    'num_replicas = 1;" | ' \
                    '{0} sql --insecure ' \
@@ -577,7 +577,8 @@ def run_tpcc_workload(
     system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # promote keys
-    promote_keys_in_tpcc(a_server_node, warehouses)
+    if promote_keys:
+        promote_keys_in_tpcc(a_server_node, warehouses)
 
     if (
         mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
@@ -689,9 +690,7 @@ def run(config, log_dir, write_cicada_log=True):
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
     nodelocal_dir = "/mydata"
-    if config["name"] == "tpcc":
-        nodelocal_dir = "/mydata"
-    if keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+    if config["name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)
     set_cluster_settings_on_single_node(server_nodes[0])
@@ -738,10 +737,11 @@ def run(config, log_dir, write_cicada_log=True):
         mix = config["mix"]
         init_with_fixture = config["init_with_fixture"]
         wait = config["wait"]
+        promote_keys = config["promote_keys"]
         bench_log_files = run_tpcc_workload(
             client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
             duration, mix, discrete_warmup_and_trial, init_with_fixture,
-            warehouses, wait
+            warehouses, wait, promote_keys
         )
 
         # create csv file of gathered data
