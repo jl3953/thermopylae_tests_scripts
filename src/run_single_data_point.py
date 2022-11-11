@@ -156,7 +156,13 @@ def setup_hotnode(
         None.
     """
     cicada_server.kill(node)
+    for tail_node in tail_nodes:
+        cicada_server.kill(tail_node)
+
     cicada_server.build_server(node, commit_branch)
+    for tail_node in tail_nodes:
+        cicada_server.build_server(tail_node, commit_branch)
+
     if enable_replication:
         cicada_server.run_chain_rep(node, tail_nodes, concurrency,
                                     log_threshold, replay_interval, test_mode,
