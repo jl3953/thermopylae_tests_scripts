@@ -46,8 +46,7 @@ class ConfigObject:
 
         # # Replication
         self.enable_replication = [True]
-        self.tail_nodes = [vars(node.Node(13, port=60061)),
-                           vars(node.Node(14, port=70071))]
+        self.tail_nodes = [[vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
         self.log_threshold = [10]
         self.replay_interval = [250]  # microseconds
         self.test_mode = [False]
