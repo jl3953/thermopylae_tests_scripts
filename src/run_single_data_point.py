@@ -695,6 +695,7 @@ def run(config, log_dir, write_cicada_log=True):
             disable_cores([hot_node], cores_to_disable)
 
     # start hot node
+    print("tail nodes", config["tail_nodes"], type(config["tail_nodes"]))
     min_key = 0
     if hot_node:
         num_rows_in_cicada = prepromote_max - prepromote_min
