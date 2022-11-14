@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 import enum
+import threading
 
 import grpc
 import psycopg2
@@ -160,8 +161,15 @@ def setup_hotnode(
         cicada_server.kill(tail_node)
 
     cicada_server.build_server(node, commit_branch)
+    threads = []
     for tail_node in tail_nodes:
-        cicada_server.build_server(tail_node, commit_branch)
+        t = threading.Thread(target=cicada_server.build_server,
+                             args=(tail_node, commit_branch))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
 
     if enable_replication:
         cicada_server.run_chain_rep(node, tail_nodes, concurrency,
@@ -712,7 +720,8 @@ def run(config, log_dir, write_cicada_log=True):
             setup_hotnode(
                 hot_node, config["hot_node_commit_branch"],
                 config["hot_node_concurrency"], num_rows_in_cicada,
-                write_log=write_cicada_log, log_dir=log_dir, enable_replication=False
+                write_log=write_cicada_log, log_dir=log_dir,
+                enable_replication=False
             )
 
     # build and start crdb cluster
