@@ -22,7 +22,7 @@ def build_server(server_node, commit_branch):
           "export PATH=$PATH:/root/.local/bin; " \
           "cmake -DLTO=ON -DDEBUG=OFF ..; " \
           "make -j; " \
-          "cp /root/cicada-engine/src/mica/test/test_tx.json /root/cicada-engine/build/"
+          "ln -s /root/cicada-engine/src/mica/test/test_tx.json /root/cicada-engine/build;"
     print(system_utils.call_remote(server_url, cmd))
 
 
@@ -89,10 +89,10 @@ def run_server(server_node, concurrency, num_rows_in_dbs,
     return process
 
 
-def run_backup(server_node, concurrency, base_port, next_host, next_port,
+def run_backup(server_node_host, concurrency, base_port, next_host, next_port,
                test_mode, write_log=True,
                log_dir="/root/cicada-engine/build/logs"):
-    server_url = server_node["ip"]
+    server_url = server_node_host
 
     cmd = "/root/cicada-engine/build/backup {0} {1} {2} {3}".format(concurrency,
                                                                     base_port,
@@ -118,9 +118,9 @@ def run_backup(server_node, concurrency, base_port, next_host, next_port,
     return process
 
 
-def run_end_node(server_node, concurrency, base_port, test_mode, write_log=True,
+def run_end_node(server_node_host, concurrency, base_port, test_mode, write_log=True,
                  log_dir="/root/cicada-engine/build/logs"):
-    server_url = server_node["ip"]
+    server_url = server_node_host
 
     cmd = "/root/cicada-engine/build/backup {0} {1} --endNode".format(
         concurrency, base_port)
