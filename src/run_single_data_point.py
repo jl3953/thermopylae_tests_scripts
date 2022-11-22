@@ -34,17 +34,18 @@ class RunMode(enum.Enum):
     WARMUP_AND_TRIAL_RUN = 3
 
 
-def set_cluster_settings_on_single_node(node):
+def set_cluster_settings_on_single_node(node, enable_crdb_replication):
     cmd = ('echo "'
            # 'set cluster setting kv.range_merge.queue_enabled = false;'
            # 'set cluster setting kv.range_split.by_load_enabled = false;'
            'set cluster setting kv.raft_log.disable_synchronization_unsafe = '
-           'true;'
-           'alter range default configure zone using num_replicas = 1;'
-           '" | {0} sql --insecure '
-           '--url="postgresql://root@{1}?sslmode=disable"').format(
-        EXE, node["ip"]
-    )
+           'true;')
+
+    if not enable_crdb_replication:
+        cmd += 'alter range default configure zone using num_replicas = 1;'
+
+    cmd += ('" | {0} sql --insecure '
+            '--url="postgresql://root@{1}?sslmode=disable"').format(EXE, node["ip"])
     system_utils.call_remote(node["ip"], cmd)
 
 
@@ -134,9 +135,9 @@ def start_cluster(nodes, nodelocal_dir):
         )
 
 
-def set_cluster_settings(nodes):
+def set_cluster_settings(nodes, enable_crdb_replication):
     for node in nodes:
-        set_cluster_settings_on_single_node(node)
+        set_cluster_settings_on_single_node(node, enable_crdb_replication)
 
 
 def setup_hotnode(
@@ -301,10 +302,9 @@ def run_kv_workload(
         duration, read_percent, n_keys_per_statement, skew, log_dir,
         prepromote_min,
         prepromote_max, hot_node, hot_node_port, crdb_grpc_port, nodelocal_dir,
-        discrete_warmup_and_trial, keyspace_min=0,
+        discrete_warmup_and_trial, enable_crdb_replication, keyspace_min=0,
         mode=RunMode.WARMUP_AND_TRIAL_RUN, hash_randomize_keyspace=True,
-        enable_fixed_sized_encoding=True
-):
+        enable_fixed_sized_encoding=True):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
 
@@ -331,13 +331,15 @@ def run_kv_workload(
 
     # set database settings
     a_server_node = server_nodes[0]
-    settings_cmd = 'echo "alter range default configure zone using ' \
-                   'num_replicas = 1;" | ' \
-                   '{0} sql --insecure --database=kv ' \
-                   '--url="postgresql://root@{1}?sslmode=disable"'.format(
-        EXE, a_server_node["ip"]
-    )
-    system_utils.call_remote(driver_node["ip"], settings_cmd)
+    if not enable_crdb_replication:
+        printf("No CRDB replication")
+        settings_cmd = 'echo "alter range default configure zone using ' \
+                       'num_replicas = 1;" | ' \
+                       '{0} sql --insecure --database=kv ' \
+                       '--url="postgresql://root@{1}?sslmode=disable"'.format(
+            EXE, a_server_node["ip"]
+        )
+        system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # prepopulate data the old way
     # if keyspace - keyspace_min == populate_crdb_data.MAX_DATA_ROWS_PER_FILE-1:
@@ -576,7 +578,7 @@ def promote_keys_in_tpcc(crdb_node, num_warehouses):
 def run_tpcc_workload(
         client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
         duration, mix, discrete_warmup_and_trial, init_with_fixture, warehouses,
-        wait, promote_keys, mode=RunMode.WARMUP_AND_TRIAL_RUN
+        wait, promote_keys, enable_crdb_replication, mode=RunMode.WARMUP_AND_TRIAL_RUN
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -593,13 +595,14 @@ def run_tpcc_workload(
     init_tpcc(a_server_node, driver_node, init_with_fixture, warehouses)
 
     # set database settings
-    settings_cmd = 'echo "alter range default configure zone using ' \
-                   'num_replicas = 1;" | ' \
-                   '{0} sql --insecure ' \
-                   '--url="postgresql://root@{1}?sslmode=disable"'.format(
-        EXE, a_server_node["ip"]
-    )
-    system_utils.call_remote(driver_node["ip"], settings_cmd)
+    if not enable_crdb_replication:
+        settings_cmd = 'echo "alter range default configure zone using ' \
+                       'num_replicas = 1;" | ' \
+                       '{0} sql --insecure ' \
+                       '--url="postgresql://root@{1}?sslmode=disable"'.format(
+            EXE, a_server_node["ip"]
+        )
+        system_utils.call_remote(driver_node["ip"], settings_cmd)
 
     # promote keys
     if promote_keys:
@@ -689,6 +692,7 @@ def run(config, log_dir, write_cicada_log=True):
     enable_fixed_sized_encoding = config[
         "enable_fixed_sized_encoding"] if "enable_fixed_sized_encoding" in config else None
     keyspace = config["keyspace"] if "keyspace" in config else 0
+    enable_crdb_replication = config["enable_crdb_replication"]
 
     # hotkeys = config["hotkeys"]
 
@@ -731,7 +735,7 @@ def run(config, log_dir, write_cicada_log=True):
         "name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)
-    set_cluster_settings_on_single_node(server_nodes[0])
+    set_cluster_settings_on_single_node(server_nodes[0], enable_crdb_replication)
 
     # build and start client nodes
     results_fpath = ""
@@ -748,9 +752,9 @@ def run(config, log_dir, write_cicada_log=True):
             duration, read_percent, n_keys_per_statement, skew, log_dir,
             prepromote_min, prepromote_max, hot_node, hot_node_port,
             crdb_grpc_port, nodelocal_dir, discrete_warmup_and_trial,
-            keyspace_min=min_key,
+            enable_crdb_replication, keyspace_min=min_key,
             hash_randomize_keyspace=hash_randomize_keyspace,
-            enable_fixed_sized_encoding=enable_fixed_sized_encoding
+            enable_fixed_sized_encoding=enable_fixed_sized_encoding,
         )
 
         # create csv file of gathered data
@@ -779,7 +783,7 @@ def run(config, log_dir, write_cicada_log=True):
         bench_log_files = run_tpcc_workload(
             client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
             duration, mix, discrete_warmup_and_trial, init_with_fixture,
-            warehouses, wait, promote_keys
+            warehouses, wait, promote_keys, enable_crdb_replication
         )
 
         # create csv file of gathered data
