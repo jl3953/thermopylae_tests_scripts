@@ -427,7 +427,7 @@ def run_kv_workload(
         sys.exit(-1)
 
     # prepromote keys, if necessary
-    if prepromote_max - prepromote_min > 0:
+    if hot_node and prepromote_max - prepromote_min > 0:
         time.sleep(5)
         prepromote_keys(
             hot_node, hot_node_port, server_nodes, crdb_grpc_port,
