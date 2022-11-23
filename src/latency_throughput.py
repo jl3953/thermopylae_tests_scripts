@@ -44,39 +44,44 @@ def run(config, lt_config, log_dir):
 
     # honing in on increasingly smaller ranges
     data = []
-    #while step_size > 0:
-    print("start", type(start), "end", type(end), "step_size", type(step_size))
-    concurrency_list = [i for i in range(1, 24)]
-    for concurrency in concurrency_list:
-        #try:
-        # run trial for this concurrency
-        config["concurrency"] = concurrency
+    while step_size > 0:
+        print("start", type(start), "end", type(end), "step_size",
+              type(step_size))
+        concurrency_list = [i for i in range(start, end, step_size)]
+        for concurrency in concurrency_list:
+            # try:
+            # run trial for this concurrency
+            config["concurrency"] = concurrency
 
-        # make directory for this specific concurrency, unique by timestamp
-        specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
-            str(concurrency), datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
+            # make directory for this specific concurrency, unique by timestamp
+            specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
+                str(concurrency),
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
 
-        # run trial
-        os.makedirs(specific_logs_dir)
-        results_fpath_csv = run_single_data_point.run(config,
-            specific_logs_dir, write_cicada_log=False)
+            # run trial
+            os.makedirs(specific_logs_dir)
+            results_fpath_csv = run_single_data_point.run(config,
+                                                          specific_logs_dir,
+                                                          write_cicada_log=False)
 
-        # gather data from this run
-        datum = {"concurrency": concurrency}
-        more_data = csv_utils.read_in_data(results_fpath_csv)
-        datum.update(*more_data)
-        data.append(datum)
-        #except BaseException as err:
-        #    print("jenndebug latency throughput move on", err)
+            # gather data from this run
+            datum = {"concurrency": concurrency}
+            more_data = csv_utils.read_in_data(results_fpath_csv)
+            datum.update(*more_data)
+            data.append(datum)
+            # except BaseException as err:
+            #    print("jenndebug latency throughput move on", err)
 
-    # find max throughput and hone in on it
-    max_throughput_concurrency = max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
-    concurrency = last_adjustments(max_throughput_concurrency)
-    start = int(concurrency - step_size)
-    end = int(concurrency + step_size)
-    step_size = int(step_size / 2)
+        # find max throughput and hone in on it
+        max_throughput_concurrency = \
+            max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
+        concurrency = last_adjustments(max_throughput_concurrency)
+        start = int(concurrency - step_size)
+        end = int(concurrency + step_size)
+        step_size = int(step_size / 2)
 
-    # checkpoint_csv_fpath, and also write out csv values every round of honing in
+    # checkpoint_csv_fpath, and also write out csv values every round of
+    # honing in
     insert_csv_data(data, checkpoint_csv_fpath)
 
     # plot the latency throughput graphs
@@ -90,7 +95,8 @@ def run(config, lt_config, log_dir):
 
 def find_optimal_concurrency(lt_fpath_csv):
     data = csv_utils.read_in_data(lt_fpath_csv)
-    max_throughput_concurrency = max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
+    max_throughput_concurrency = \
+        max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
     return int(last_adjustments(max_throughput_concurrency))
 
 
