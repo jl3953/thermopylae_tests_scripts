@@ -6,11 +6,14 @@ import time
 import async_server
 import system_utils
 
+STARTUP_SECS = 20
+
 
 def build_server(server_node, commit_branch):
     server_url = server_node["ip"]
 
     cmd = "cd /root/cicada-engine; " \
+          "../script/setup.sh 0; " \
           "git fetch origin {0}; " \
           "git stash; " \
           "git checkout {0}; " \
@@ -22,7 +25,8 @@ def build_server(server_node, commit_branch):
           "export PATH=$PATH:/root/.local/bin; " \
           "cmake -DLTO=ON -DDEBUG=OFF ..; " \
           "make -j; " \
-          "ln -s /root/cicada-engine/src/mica/test/test_tx.json /root/cicada-engine/build;"
+          "ln -s /root/cicada-engine/src/mica/test/test_tx.json " \
+          "/root/cicada-engine/build; "
     print(system_utils.call_remote(server_url, cmd))
 
 
@@ -62,7 +66,8 @@ def run_server(server_node, concurrency, num_rows_in_dbs,
                replay_interval=0):
     server_url = server_node["ip"]
 
-    cmd = "/root/cicada-engine/build/hotshard_gateway_server {0}".format(
+    cmd = "/root/cicada-engine/script/setup.sh 32000; " \
+          "/root/cicada-engine/build/hotshard_gateway_server {0}".format(
         concurrency)
     if enable_replication:
         cmd += " {0} {1} {2} {3}".format(next_host, next_port, log_threshold,
@@ -84,7 +89,7 @@ def run_server(server_node, concurrency, num_rows_in_dbs,
     else:
         process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
 
-    time.sleep(5)
+    time.sleep(STARTUP_SECS)
 
     return process
 
@@ -113,7 +118,7 @@ def run_backup(server_node_host, concurrency, base_port, next_host, next_port,
     else:
         process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
 
-    time.sleep(5)
+    time.sleep(STARTUP_SECS)
 
     return process
 
@@ -139,7 +144,7 @@ def run_end_node(server_node_host, concurrency, base_port, test_mode, write_log=
     else:
         process = subprocess.Popen(shlex.split(ssh_wrapped_cmd))
 
-    time.sleep(5)
+    time.sleep(STARTUP_SECS)
 
     return process
 
