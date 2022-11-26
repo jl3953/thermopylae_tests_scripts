@@ -10,6 +10,7 @@ STARTUP_SECS = 20
 
 
 def build_server(server_node, commit_branch):
+    print(type(server_node))
     server_url = server_node["ip"]
 
     cmd = "cd /root/cicada-engine; " \
@@ -123,7 +124,8 @@ def run_backup(server_node_host, concurrency, base_port, next_host, next_port,
     return process
 
 
-def run_end_node(server_node_host, concurrency, base_port, test_mode, write_log=True,
+def run_end_node(server_node_host, concurrency, base_port, test_mode,
+                 write_log=True,
                  log_dir="/root/cicada-engine/build/logs"):
     server_url = server_node_host
 
