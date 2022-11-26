@@ -13,7 +13,6 @@ def build_server(server_node, commit_branch):
     server_url = server_node["ip"]
 
     cmd = "cd /root/cicada-engine; " \
-          "../script/setup.sh 0; " \
           "git fetch origin {0}; " \
           "git stash; " \
           "git checkout {0}; " \
@@ -21,6 +20,7 @@ def build_server(server_node, commit_branch):
     print(system_utils.call_remote(server_url, cmd))
 
     cmd = "cd /root/cicada-engine/build; " \
+          "../script/setup.sh 0; " \
           "rm -rf *; " \
           "export PATH=$PATH:/root/.local/bin; " \
           "cmake -DLTO=ON -DDEBUG=OFF ..; " \
