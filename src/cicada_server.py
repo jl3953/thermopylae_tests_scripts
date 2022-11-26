@@ -10,7 +10,6 @@ STARTUP_SECS = 20
 
 
 def build_server(server_node, commit_branch):
-    print(type(server_node))
     server_url = server_node["ip"]
 
     cmd = "cd /root/cicada-engine; " \
