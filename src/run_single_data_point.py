@@ -260,6 +260,8 @@ def prepromote_keys(
         system_utils.call(update_smdbrpc_repo, f)
         system_utils.call(cmd, f)
 
+    time.sleep(5)
+
 
 def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
     # kill all client nodes
