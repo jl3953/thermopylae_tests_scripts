@@ -21,13 +21,15 @@ def build_server(server_node, commit_branch):
 
     cmd = "cd /root/cicada-engine/build; " \
           "../script/setup.sh 0; " \
+          "sleep 2; " \
           "rm -rf *; " \
           "export PATH=$PATH:/root/.local/bin; " \
           "cmake -DLTO=ON -DDEBUG=OFF ..; " \
           "make -j; " \
           "ln -s /root/cicada-engine/src/mica/test/test_tx.json " \
           "/root/cicada-engine/build; " \
-          "/root/cicada-engine/script/setup.sh 32000; "
+          "/root/cicada-engine/script/setup.sh 32000; " \
+          "sleep 2; "
     print(system_utils.call_remote(server_url, cmd))
 
 
