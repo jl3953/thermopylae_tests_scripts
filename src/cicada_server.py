@@ -26,7 +26,8 @@ def build_server(server_node, commit_branch):
           "cmake -DLTO=ON -DDEBUG=OFF ..; " \
           "make -j; " \
           "ln -s /root/cicada-engine/src/mica/test/test_tx.json " \
-          "/root/cicada-engine/build; "
+          "/root/cicada-engine/build; " \
+          "/root/cicada-engine/script/setup.sh 32000; "
     print(system_utils.call_remote(server_url, cmd))
 
 
@@ -66,8 +67,7 @@ def run_server(server_node, concurrency, num_rows_in_dbs,
                replay_interval=0):
     server_url = server_node["ip"]
 
-    cmd = "/root/cicada-engine/script/setup.sh 32000; " \
-          "/root/cicada-engine/build/hotshard_gateway_server {0}".format(
+    cmd = "/root/cicada-engine/build/hotshard_gateway_server {0}".format(
         concurrency)
     if enable_replication:
         cmd += " {0} {1} {2} {3}".format(next_host, next_port, log_threshold,
