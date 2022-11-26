@@ -162,11 +162,10 @@ def setup_hotnode(
     for tail_node in tail_nodes:
         cicada_server.kill(tail_node)
 
-    cicada_server.build_server(node, commit_branch)
     threads = []
-    for tail_node in tail_nodes:
+    for node in tail_nodes + [cicada_server]:
         t = threading.Thread(target=cicada_server.build_server,
-                             args=(tail_node, commit_branch))
+                             args=(node, commit_branch))
         t.start()
         threads.append(t)
 
