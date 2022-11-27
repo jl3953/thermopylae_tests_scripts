@@ -394,7 +394,7 @@ def run_kv_workload(
         # print(f"nodelocal upload elapsed {toc - tic:0.4f} seconds")
 
         if num_files >= 10:
-            for i in range(10, num_files, 10):
+            for i in range(10, num_files+1, 10):
                 tic = time.perf_counter()
                 populate_crdb_data.import_into_crdb(
                     a_server_node["ip"], data_files[i - 10: i]
