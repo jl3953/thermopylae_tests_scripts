@@ -99,7 +99,8 @@ def deduce_result_files_from_single_dir(directory):
         # checking if it is a directory
         if os.path.isdir(lt_point_dir):
             result = os.path.join(lt_point_dir, "results.csv")
-            result_files.append(result)
+            if os.path.isfile(result):
+                result_files.append(result)
 
     return result_files
 
