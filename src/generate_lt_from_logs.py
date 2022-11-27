@@ -49,11 +49,10 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
             reader = csv.DictReader(rf, delimiter='\t')
             for row in reader:
                 # of which there is only one
-                print(row)
                 data_points.append(row)
 
+    data_points = sorted(data_points, key=lambda i: i["concurrency"])
     ltcsv = os.path.join(ltcsv_dir, "lt.csv")
-    # print(data_points)
     with open(ltcsv, "w") as f:
         writer = csv.DictWriter(f, fieldnames=data_points[0].keys(),
                                 delimiter='\t')
