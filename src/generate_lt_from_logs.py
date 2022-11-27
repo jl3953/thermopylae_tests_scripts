@@ -49,6 +49,7 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
             reader = csv.DictReader(result_file)
             for row in reader:
                 # of which there is only one
+                print(row)
                 data_points.append(row)
 
     ltcsv = os.path.join(ltcsv_dir, "lt.csv")
