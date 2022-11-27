@@ -22,7 +22,7 @@ def recover_lt_from_logs(ltcsv_dir, dirs):
     print("result files: {0}".format(result_files))
 
     ltcsv = extract_data_points_into_ltcsv(ltcsv_dir, result_files)
-    print("lt.csv: {0}", ltcsv)
+    print("lt.csv: {0}".format(ltcsv))
 
     plot_utils.gnuplot(latency_throughput.LT_GNUPLOT_EXE, ltcsv,
                        os.path.join(ltcsv_dir, "p50_lt.png"),
@@ -52,6 +52,7 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
                 data_points.append(row)
 
     ltcsv = os.path.join(ltcsv_dir, "lt.csv")
+    print(data_points)
     with open(ltcsv, "w") as f:
         writer = csv.DictWriter(f, fieldnames=data_points[0].keys())
 
