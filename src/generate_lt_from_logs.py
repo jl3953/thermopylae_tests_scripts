@@ -53,7 +53,7 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
                 data_points.append(row)
 
     ltcsv = os.path.join(ltcsv_dir, "lt.csv")
-    print(data_points)
+    # print(data_points)
     with open(ltcsv, "w") as f:
         writer = csv.DictWriter(f, fieldnames=data_points[0].keys())
 
