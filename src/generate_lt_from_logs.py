@@ -45,8 +45,8 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
     data_points = []
 
     for result_file in result_files:
-        with open(result_file) as rf:
-            reader = csv.DictReader(result_file)
+        with open(result_file, "r") as rf:
+            reader = csv.DictReader(rf, delimiter='\t')
             for row in reader:
                 # of which there is only one
                 print(row)
@@ -55,7 +55,8 @@ def extract_data_points_into_ltcsv(ltcsv_dir, result_files):
     ltcsv = os.path.join(ltcsv_dir, "lt.csv")
     # print(data_points)
     with open(ltcsv, "w") as f:
-        writer = csv.DictWriter(f, fieldnames=data_points[0].keys())
+        writer = csv.DictWriter(f, fieldnames=data_points[0].keys(),
+                                delimiter='\t')
 
         writer.writeheader()
         writer.writerows(data_points)
