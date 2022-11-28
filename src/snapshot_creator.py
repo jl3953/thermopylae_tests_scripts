@@ -34,8 +34,6 @@ def initialize_crdb(config):
 
 
 def main():
-
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--start", type=int, required=True,

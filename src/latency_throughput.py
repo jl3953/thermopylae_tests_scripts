@@ -5,7 +5,6 @@ import os
 import config_io
 import constants
 import csv_utils
-import gather
 import plot_utils
 import run_single_data_point
 

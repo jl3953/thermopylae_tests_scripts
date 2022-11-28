@@ -20,7 +20,8 @@ import populate_crdb_data
 import system_utils
 import time
 
-import smdbrpc_pb2, smdbrpc_pb2_grpc
+import smdbrpc_pb2
+import smdbrpc_pb2_grpc
 
 PREPROMOTION_EXE = os.path.join(
     "hotshard_gateway_client", "manual_promotion.go"
@@ -148,8 +149,7 @@ def setup_hotnode(
         node, commit_branch, concurrency, num_rows_in_db,
         write_log=True, log_dir="/root/cicada/build/log",
         enable_replication=False, tail_nodes=[], log_threshold=0,
-        replay_interval=0,
-        test_mode=False
+        replay_interval=0, test_mode=False
 ):
     """ Kills node (if running) and (re-)starts it.
 
@@ -157,6 +157,15 @@ def setup_hotnode(
         node (dict of Node object)
         commit_branch (str): commit of hotnode
         concurrency (int): concurrency with which to start the hotnode
+        num_rows_in_db (int): deprecated
+        write_log (bool): whether to write Cicada's failures to a log
+        log_dir (str): directory of cicada's log, if written to
+        enable_replication (bool): whether to enable chain rep on Cicada
+        tail_nodes (list[Node]): Cicada's tail nodes for chain rep
+        log_threshold (int): how many transactions should Cicada buffer during
+            replication
+        replay_interval (int): deprecated
+        test_mode (bool): if true, tail nodes do not replay transactions
 
     Returns:
         None.
@@ -322,8 +331,7 @@ def run_kv_workload(
             "--enable_fixed_sized_encoding={}".format(
                 enable_fixed_sized_encoding
             ), "--ramp={}s".format(
-            0 if discrete_warmup_and_trial else warm_up_duration
-        )]
+            0 if discrete_warmup_and_trial else warm_up_duration)]
     # cmd = "{0} workload run kv {1} {2} --useOriginal=False".format(EXE,
     # " ".join(server_urls), " ".join(args))
 
@@ -643,8 +651,8 @@ def run_tpcc_workload(
     # warmup and trial run commands are the same
     args = ["--concurrency {}".format(int(concurrency)),
             "--mix='{}'".format(mix), "--ramp={}s".format(
-            0 if discrete_warmup_and_trial else warm_up_duration
-        ), "--wait={}".format(1 if wait else 0)]
+            0 if discrete_warmup_and_trial else warm_up_duration),
+            "--wait={}".format(1 if wait else 0)]
 
     # init tpcc
     a_server_node = server_nodes[0]
@@ -665,8 +673,7 @@ def run_tpcc_workload(
     if promote_keys:
         promote_keys_in_tpcc(a_server_node, warehouses)
 
-    if (
-            mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
+    if (mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
             and discrete_warmup_and_trial:
 
         # run warmup
@@ -788,8 +795,7 @@ def run(config, log_dir, write_cicada_log=True):
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
     nodelocal_dir = "/mydata"
-    if config[
-        "name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+    if config["name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)
     set_cluster_settings_on_single_node(server_nodes[0],
