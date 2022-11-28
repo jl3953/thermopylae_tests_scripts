@@ -99,10 +99,13 @@ def main():
         initialize_crdb(config)
 
         if last_snapshot != "None":
+            tic = time.perf_counter()
             run_single_data_point.restore_rows(
                 a_server_node["ip"], last_snapshot
             )
-            print(a_server_node["ip"], last_snapshot)
+            toc = time.perf_counter()
+            print(f"elapsed {toc - tic:0.4f} seconds", a_server_node["ip"],
+                  last_snapshot)
 
         # import in batches of 10
         first_file = i
