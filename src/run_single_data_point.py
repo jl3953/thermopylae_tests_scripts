@@ -383,8 +383,11 @@ def run_kv_workload(
 
         # restore the nearest snapshot for speed
         if predecessor_snapshot > 0:
+            tic = time.perf_counter()
             restore_rows(a_server_node["ip"],
                          "snapshots/{0}M".format(predecessor_snapshot))
+            toc = time.perf_counter()
+            print(f"elapsed {toc - tic:0.4f} seconds, restored snapshot")
 
         # import the remaining rows
         if keyspace > predecessor_snapshot * M:
