@@ -28,7 +28,7 @@ def insert_csv_data(data, csv_fpath):
     return csv_fpath
 
 
-def run(config, lt_config, log_dir):
+def run(should_restore_data, config, lt_config, log_dir):
     # create latency throughput dir, if not running recovery
     lt_dir = os.path.join(log_dir, "latency_throughput")
     lt_logs_dir = os.path.join(lt_dir, "logs")
@@ -43,6 +43,7 @@ def run(config, lt_config, log_dir):
 
     # honing in on increasingly smaller ranges
     data = []
+    restore_data = should_restore_data
     while step_size > 0:
         print("start", type(start), "end", type(end), "step_size",
               type(step_size))
@@ -62,9 +63,11 @@ def run(config, lt_config, log_dir):
 
                 # run trial
                 os.makedirs(specific_logs_dir)
-                results_fpath_csv = run_single_data_point.run(config,
-                                                              specific_logs_dir,
-                                                              write_cicada_log=False)
+                results_fpath_csv = run_single_data_point.run(
+                    restore_data, config,
+                    specific_logs_dir,
+                    write_cicada_log=False)
+                restore_data = False
 
                 # gather data from this run
                 datum = {"concurrency": concurrency}

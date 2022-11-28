@@ -123,6 +123,8 @@ def main():
 
             for cfg_fpath, lt_fpath in cfg_lt_tuples:
 
+                should_restore_data = True
+
                 # generate config object
                 cfg = generate_configs.generate_configs_from_files_and_add_fields(
                     cfg_fpath
@@ -152,8 +154,9 @@ def main():
 
                     if cfg["generate_latency_throughput"]:
                         # generate latency throughput trials
-                        lt_fpath_csv = latency_throughput.run(cfg, lt_cfg,
-                                                              logs_dir)
+                        lt_fpath_csv = latency_throughput.run(
+                            should_restore_data, cfg, lt_cfg, logs_dir)
+                        should_restore_data = False
 
                         # run trial
                         cfg[
@@ -162,7 +165,8 @@ def main():
                                 lt_fpath_csv
                             )
 
-                    results_fpath_csv = run_single_data_point.run(cfg, logs_dir)
+                    results_fpath_csv = run_single_data_point.run(
+                        should_restore_data, cfg, logs_dir)
 
                     # insert into sqlite db
                     # TODO get the actual commit hash, not the branch

@@ -11,7 +11,8 @@ from constants import EXE
 def initialize_crdb(config):
     server_nodes = config["warm_nodes"]
     commit_hash = config["commit_hash"]
-    run_single_data_point.cleanup_previous_experiments(server_nodes, [], None)
+    should_restore_data = True
+    run_single_data_point.cleanup_previous_experiments(should_restore_data, server_nodes, [], None)
     run_single_data_point.build_cockroachdb_commit(server_nodes, commit_hash)
     run_single_data_point.start_cluster(server_nodes, nodelocal_dir="/mydata")
 

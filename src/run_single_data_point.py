@@ -218,7 +218,8 @@ def modify_cores(nodes, cores, is_enable_cores=False):
         p.wait()
 
 
-def kill_cockroachdb_node(node):
+def kill_cockroachdb_node(should_retain_data, node):
+    """ Cleans up CockroachDB node"""
     ip = node["ip"]
 
     if "store" in node:
@@ -230,9 +231,10 @@ def kill_cockroachdb_node(node):
            "|| (sudo pkill -9 cockroach; while ps -p $PID;do sleep 1;done;)")
 
     if store:
-        cmd = "({0}) && {1}".format(
-            cmd, "sudo rm -rf {0}".format(os.path.join(store, "*"))
-        )
+        if not should_retain_data:
+            cmd = "({0}) && {1}".format(
+                cmd, "sudo rm -rf {0}".format(os.path.join(store, "*"))
+            )
 
     cmd = "ssh {0} '{1}'".format(ip, cmd)
     print(cmd)
@@ -275,14 +277,17 @@ def prepromote_keys(
     time.sleep(5)
 
 
-def cleanup_previous_experiments(server_nodes, client_nodes, hot_node):
+def cleanup_previous_experiments(should_retain_data, server_nodes,
+                                 client_nodes, hot_node):
     # kill all client nodes
-    client_processes = [kill_cockroachdb_node(node) for node in client_nodes]
+    client_processes = [kill_cockroachdb_node(False, node) for node in
+                        client_nodes]
     for cp in client_processes:
         cp.wait()
 
     # kill at server nodes
-    server_processes = [kill_cockroachdb_node(node) for node in server_nodes]
+    server_processes = [kill_cockroachdb_node(should_retain_data, node) for node in
+                        server_nodes]
     for sp in server_processes:
         sp.wait()
 
@@ -311,14 +316,18 @@ def restore_rows(server_node, snapshot_name):
     system_utils.call_remote(server_node, restore_crdb_cmd)
 
 
-def run_kv_workload(
-        client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
-        duration, read_percent, n_keys_per_statement, skew, log_dir,
-        prepromote_min,
-        prepromote_max, hot_node, hot_node_port, crdb_grpc_port, nodelocal_dir,
-        discrete_warmup_and_trial, enable_crdb_replication, keyspace_min=0,
-        mode=RunMode.WARMUP_AND_TRIAL_RUN, hash_randomize_keyspace=True,
-        enable_fixed_sized_encoding=True):
+def run_kv_workload(should_restore_data,
+                    client_nodes, server_nodes, concurrency, keyspace,
+                    warm_up_duration,
+                    duration, read_percent, n_keys_per_statement, skew, log_dir,
+                    prepromote_min,
+                    prepromote_max, hot_node, hot_node_port, crdb_grpc_port,
+                    nodelocal_dir,
+                    discrete_warmup_and_trial, enable_crdb_replication,
+                    keyspace_min=0,
+                    mode=RunMode.WARMUP_AND_TRIAL_RUN,
+                    hash_randomize_keyspace=True,
+                    enable_fixed_sized_encoding=True):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
 
@@ -359,139 +368,144 @@ def run_kv_workload(
     #    restore_rows(a_server_node["ip"], "data/1M")
 
     assert (keyspace_min == 0)
-    if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
-        data_csv_leaf = "init_data.csv.gz"
-        data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
-        populate_crdb_data.write_keyspace_to_file(
-            data_csv, keyspace + 1, range_min=keyspace_min, payload_size=512,
-            enable_fixed_sized_encoding=enable_fixed_sized_encoding
-        )
-        nfs_location = "data/{0}".format(data_csv_leaf)
-        import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(' \
-                     '\\\"nodelocal://1/{1}\\\");" | ' \
-                     "{0} sql --insecure --database=kv".format(
-            EXE, nfs_location
-        )
-        system_utils.call_remote(a_server_node["ip"], import_cmd)
-
-    elif keyspace < (LARGEST_SNAPSHOT + 50) * M:
-        predecessor_snapshot = 0
-        successor_snapshot = 50
-        while keyspace > successor_snapshot * M and successor_snapshot <= LARGEST_SNAPSHOT:
-            predecessor_snapshot = successor_snapshot
-            successor_snapshot += 50
-
-        # restore the nearest snapshot for speed
-        if predecessor_snapshot > 0:
-            tic = time.perf_counter()
-            restore_rows(a_server_node["ip"],
-                         "snapshots/{0}M".format(predecessor_snapshot))
-            toc = time.perf_counter()
-            print(f"elapsed {toc - tic:0.4f} seconds, restored snapshot")
-
-        # import the remaining rows
-        if keyspace > predecessor_snapshot * M:
-            num_files = math.ceil(
-                keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
+    if should_restore_data:
+        if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+            data_csv_leaf = "init_data.csv.gz"
+            data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
+            populate_crdb_data.write_keyspace_to_file(
+                data_csv, keyspace + 1, range_min=keyspace_min,
+                payload_size=512,
+                enable_fixed_sized_encoding=enable_fixed_sized_encoding
             )
-            data_files = ["populate1B._{0}.csv.gz".format(i) for i in
-                          range(num_files + 1)]
-            print("number of files to import:", num_files - predecessor_snapshot)
+            nfs_location = "data/{0}".format(data_csv_leaf)
+            import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(' \
+                         '\\\"nodelocal://1/{1}\\\");" | ' \
+                         "{0} sql --insecure --database=kv".format(
+                EXE, nfs_location
+            )
+            system_utils.call_remote(a_server_node["ip"], import_cmd)
 
-            if num_files >= 10:
-                for i in range(predecessor_snapshot + 10, num_files + 1, 10):
+        elif keyspace < (LARGEST_SNAPSHOT + 50) * M:
+            predecessor_snapshot = 0
+            successor_snapshot = 50
+            while keyspace > successor_snapshot * M and successor_snapshot <= LARGEST_SNAPSHOT:
+                predecessor_snapshot = successor_snapshot
+                successor_snapshot += 50
+
+            # restore the nearest snapshot for speed
+            if predecessor_snapshot > 0:
+                tic = time.perf_counter()
+                restore_rows(a_server_node["ip"],
+                             "snapshots/{0}M".format(predecessor_snapshot))
+                toc = time.perf_counter()
+                print(f"elapsed {toc - tic:0.4f} seconds, restored snapshot")
+
+            # import the remaining rows
+            if keyspace > predecessor_snapshot * M:
+                num_files = math.ceil(
+                    keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
+                )
+                data_files = ["populate1B._{0}.csv.gz".format(i) for i in
+                              range(num_files + 1)]
+                print("number of files to import:",
+                      num_files - predecessor_snapshot)
+
+                if num_files >= 10:
+                    for i in range(predecessor_snapshot + 10, num_files + 1,
+                                   10):
+                        tic = time.perf_counter()
+                        populate_crdb_data.import_into_crdb(
+                            a_server_node["ip"], data_files[i - 10: i]
+                        )
+                        toc = time.perf_counter()
+                        print(f"elapsed {toc - tic:0.4f} seconds, imported",
+                              i - 10,
+                              i)
+
+                remaining_files = num_files % 10
+                if remaining_files > 0:
                     tic = time.perf_counter()
                     populate_crdb_data.import_into_crdb(
-                        a_server_node["ip"], data_files[i - 10: i]
+                        a_server_node["ip"], data_files[-remaining_files:]
                     )
                     toc = time.perf_counter()
-                    print(f"elapsed {toc - tic:0.4f} seconds, imported", i - 10,
-                          i)
-
-            remaining_files = num_files % 10
-            if remaining_files > 0:
-                tic = time.perf_counter()
-                populate_crdb_data.import_into_crdb(
-                    a_server_node["ip"], data_files[-remaining_files:]
-                )
-                toc = time.perf_counter()
-                print(
-                    f"elapsed {toc - tic:0.4f} seconds, imported",
-                    num_files - remaining_files, num_files
-                )
-    else:
-        print("keyspace larger than", LARGEST_SNAPSHOT + 50, "unsupported")
-        sys.exit(-1)
-    #
-    # if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
-    #     data_csv_leaf = "init_data.csv.gz"
-    #     data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
-    #     populate_crdb_data.write_keyspace_to_file(
-    #         data_csv, keyspace + 1, range_min=keyspace_min, payload_size=512,
-    #         enable_fixed_sized_encoding=enable_fixed_sized_encoding
-    #     )
-    #     nfs_location = "data/{0}".format(data_csv_leaf)
-    #     # upload_cmd = "{0} nodelocal upload {1} {2} --host={3}
-    #     # --insecure".format(
-    #     #     EXE, data_csv, nfs_location, a_server_node["ip"])
-    #     # system_utils.call(upload_cmd)
-    #     import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(' \
-    #                  '\\\"nodelocal://1/{1}\\\");" | ' \
-    #                  "{0} sql --insecure --database=kv".format(
-    #         EXE, nfs_location
-    #     )
-    #     system_utils.call_remote(a_server_node["ip"], import_cmd)
-    #
-    # elif keyspace < SNAPSHOT_THRESHOLD:
-    #     if enable_fixed_sized_encoding is False:
-    #         print(
-    #             "don't have preset files for "
-    #             "enable_fixed_sized_encoding=false"
-    #         )
-    #         sys.exit(-1)
-    #
-    #     # prepopulate data
-    #     num_files = math.ceil(
-    #         keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
-    #     )
-    #     data_files = ["populate1B._{0}.csv.gz".format(i) for i in
-    #                   range(num_files + 1)]
-    #     print("number of files to import:", num_files)
-    #
-    #     if num_files >= 10:
-    #         for i in range(10, num_files + 1, 10):
-    #             tic = time.perf_counter()
-    #             populate_crdb_data.import_into_crdb(
-    #                 a_server_node["ip"], data_files[i - 10: i]
-    #             )
-    #             toc = time.perf_counter()
-    #             print(f"elapsed {toc - tic:0.4f} seconds, imported", i - 10, i)
-    #
-    #     remaining_files = num_files % 10
-    #     if remaining_files > 0:
-    #         tic = time.perf_counter()
-    #         populate_crdb_data.import_into_crdb(
-    #             a_server_node["ip"], data_files[-remaining_files:]
-    #         )
-    #         toc = time.perf_counter()
-    #         print(
-    #             f"elapsed {toc - tic:0.4f} seconds, imported",
-    #             num_files - remaining_files, num_files
-    #         )
-    #
-    # elif keyspace == SNAPSHOT_THRESHOLD:
-    #     if enable_fixed_sized_encoding is False:
-    #         print(
-    #             "don't have preset population files for "
-    #             "enable_fixed_sized_encoding=false"
-    #         )
-    #         sys.exit(-1)
-    #
-    #     restore_rows(a_server_node["ip"], "snapshots/100M")
-    #
-    # else:
-    #     print("keyspace larger than", SNAPSHOT_THRESHOLD, "unsupported")
-    #     sys.exit(-1)
+                    print(
+                        f"elapsed {toc - tic:0.4f} seconds, imported",
+                        num_files - remaining_files, num_files
+                    )
+        else:
+            print("keyspace larger than", LARGEST_SNAPSHOT + 50, "unsupported")
+            sys.exit(-1)
+        #
+        # if keyspace - keyspace_min < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+        #     data_csv_leaf = "init_data.csv.gz"
+        #     data_csv = os.path.join(nodelocal_dir, "data", data_csv_leaf)
+        #     populate_crdb_data.write_keyspace_to_file(
+        #         data_csv, keyspace + 1, range_min=keyspace_min, payload_size=512,
+        #         enable_fixed_sized_encoding=enable_fixed_sized_encoding
+        #     )
+        #     nfs_location = "data/{0}".format(data_csv_leaf)
+        #     # upload_cmd = "{0} nodelocal upload {1} {2} --host={3}
+        #     # --insecure".format(
+        #     #     EXE, data_csv, nfs_location, a_server_node["ip"])
+        #     # system_utils.call(upload_cmd)
+        #     import_cmd = 'echo "IMPORT INTO kv (k, v) CSV DATA(' \
+        #                  '\\\"nodelocal://1/{1}\\\");" | ' \
+        #                  "{0} sql --insecure --database=kv".format(
+        #         EXE, nfs_location
+        #     )
+        #     system_utils.call_remote(a_server_node["ip"], import_cmd)
+        #
+        # elif keyspace < SNAPSHOT_THRESHOLD:
+        #     if enable_fixed_sized_encoding is False:
+        #         print(
+        #             "don't have preset files for "
+        #             "enable_fixed_sized_encoding=false"
+        #         )
+        #         sys.exit(-1)
+        #
+        #     # prepopulate data
+        #     num_files = math.ceil(
+        #         keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
+        #     )
+        #     data_files = ["populate1B._{0}.csv.gz".format(i) for i in
+        #                   range(num_files + 1)]
+        #     print("number of files to import:", num_files)
+        #
+        #     if num_files >= 10:
+        #         for i in range(10, num_files + 1, 10):
+        #             tic = time.perf_counter()
+        #             populate_crdb_data.import_into_crdb(
+        #                 a_server_node["ip"], data_files[i - 10: i]
+        #             )
+        #             toc = time.perf_counter()
+        #             print(f"elapsed {toc - tic:0.4f} seconds, imported", i - 10, i)
+        #
+        #     remaining_files = num_files % 10
+        #     if remaining_files > 0:
+        #         tic = time.perf_counter()
+        #         populate_crdb_data.import_into_crdb(
+        #             a_server_node["ip"], data_files[-remaining_files:]
+        #         )
+        #         toc = time.perf_counter()
+        #         print(
+        #             f"elapsed {toc - tic:0.4f} seconds, imported",
+        #             num_files - remaining_files, num_files
+        #         )
+        #
+        # elif keyspace == SNAPSHOT_THRESHOLD:
+        #     if enable_fixed_sized_encoding is False:
+        #         print(
+        #             "don't have preset population files for "
+        #             "enable_fixed_sized_encoding=false"
+        #         )
+        #         sys.exit(-1)
+        #
+        #     restore_rows(a_server_node["ip"], "snapshots/100M")
+        #
+        # else:
+        #     print("keyspace larger than", SNAPSHOT_THRESHOLD, "unsupported")
+        #     sys.exit(-1)
 
     # prepromote keys, if necessary
     if hot_node and prepromote_max - prepromote_min > 0:
@@ -740,7 +754,7 @@ def run_tpcc_workload(
         return bench_log_files
 
 
-def run(config, log_dir, write_cicada_log=True):
+def run(should_restore_data, config, log_dir, write_cicada_log=True):
     server_nodes = config["warm_nodes"]
     client_nodes = config["workload_nodes"]
     commit_hash = config["cockroach_commit"]
@@ -764,7 +778,9 @@ def run(config, log_dir, write_cicada_log=True):
     # hotkeys = config["hotkeys"]
 
     # clear any remaining experiments
-    cleanup_previous_experiments(server_nodes, client_nodes, hot_node)
+    should_retain_data = not should_restore_data
+    cleanup_previous_experiments(should_retain_data, server_nodes,
+                                 client_nodes, hot_node)
 
     # disable cores, if need be
     cores_to_disable = config["disable_cores"]
@@ -798,7 +814,8 @@ def run(config, log_dir, write_cicada_log=True):
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
     nodelocal_dir = "/mydata"
-    if config["name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
+    if config[
+        "name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)
     set_cluster_settings_on_single_node(server_nodes[0],
@@ -814,15 +831,21 @@ def run(config, log_dir, write_cicada_log=True):
         read_percent = config["read_percent"]
         n_keys_per_statement = config["n_keys_per_statement"]
         skew = config["skews"]
-        bench_log_files = run_kv_workload(
-            client_nodes, server_nodes, concurrency, keyspace, warm_up_duration,
-            duration, read_percent, n_keys_per_statement, skew, log_dir,
-            prepromote_min, prepromote_max, hot_node, hot_node_port,
-            crdb_grpc_port, nodelocal_dir, discrete_warmup_and_trial,
-            enable_crdb_replication, keyspace_min=min_key,
-            hash_randomize_keyspace=hash_randomize_keyspace,
-            enable_fixed_sized_encoding=enable_fixed_sized_encoding,
-        )
+        bench_log_files = run_kv_workload(should_restore_data,
+                                          client_nodes, server_nodes,
+                                          concurrency, keyspace,
+                                          warm_up_duration,
+                                          duration, read_percent,
+                                          n_keys_per_statement, skew, log_dir,
+                                          prepromote_min, prepromote_max,
+                                          hot_node, hot_node_port,
+                                          crdb_grpc_port, nodelocal_dir,
+                                          discrete_warmup_and_trial,
+                                          enable_crdb_replication,
+                                          keyspace_min=min_key,
+                                          hash_randomize_keyspace=hash_randomize_keyspace,
+                                          enable_fixed_sized_encoding=enable_fixed_sized_encoding,
+                                          )
 
         # create csv file of gathered data
         data = {"concurrency": config["concurrency"]}
