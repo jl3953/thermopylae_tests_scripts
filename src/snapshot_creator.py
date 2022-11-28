@@ -34,17 +34,7 @@ def initialize_crdb(config):
 
 
 def main():
-    config = {
-        "warm_nodes": [
-            {
-                "ip": "192.168.1.{}".format(i),
-                "store": "/data",
-                "region": "singapore",
-            }
-            for i in range(1, 11)],
-        "commit_hash": "new-cloudlab",
-        "name": "kv"
-    }
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -59,7 +49,36 @@ def main():
         "--last_snapshot", type=str, required=True,
         help="name of last snapshot, type None for initial"
     )
+    parser.add_argument(
+        "--num_nodes", type=int, required=True,
+        help="number of nodes that we're using"
+    )
+    parser.add_argument(
+        "--exclude_nodes", nargs="*", default=[],
+        help="nodes to exclude"
+    )
+
     args = parser.parse_args()
+
+    warm_nodes = []
+    for node in range(args.num_nodes):
+        if node not in [int(excluded) for excluded in args.exclude_nodes]:
+            warm_nodes.append(node)
+
+    print("using warm_nodes", warm_nodes)
+
+    config = {
+        "warm_nodes": [
+            {
+                "ip": "192.168.1.{}".format(i),
+                "store": "/data",
+                "region": "singapore",
+            }
+            for i in [j for j in range(1, 11)] + [j for j in range(15, 40)]],
+        "commit_hash": "new-cloudlab",
+        "name": "kv"
+    }
+
     if args.start % 10 != 0:
         print("args.start must start at multiple of 10")
         return -1
