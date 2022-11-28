@@ -392,7 +392,7 @@ def run_kv_workload(
                 keyspace / populate_crdb_data.MAX_DATA_ROWS_PER_FILE
             )
             data_files = ["populate1B._{0}.csv.gz".format(i) for i in
-                          range(predecessor_snapshot, num_files + 1)]
+                          range(num_files + 1)]
             print("number of files to import:", num_files - predecessor_snapshot)
 
             if num_files >= 10:
