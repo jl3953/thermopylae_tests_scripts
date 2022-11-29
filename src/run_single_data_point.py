@@ -377,7 +377,7 @@ def run_kv_workload(
     elif keyspace < (LARGEST_SNAPSHOT + 50) * M:
         predecessor_snapshot = 0
         successor_snapshot = 50
-        while keyspace > successor_snapshot * M and successor_snapshot <= LARGEST_SNAPSHOT:
+        while keyspace >= successor_snapshot * M and successor_snapshot <= LARGEST_SNAPSHOT:
             predecessor_snapshot = successor_snapshot
             successor_snapshot += 50
 
