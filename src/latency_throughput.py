@@ -50,29 +50,29 @@ def run(config, lt_config, log_dir):
         if step_size == 1:
             concurrency_list = [1, 2, 4, 8, 16, 32] + concurrency_list
         for concurrency in concurrency_list:
-            # try:
-            # run trial for this concurrency
-            config["concurrency"] = concurrency
+            try:
+                # run trial for this concurrency
+                config["concurrency"] = concurrency
 
-            # make directory for this specific concurrency, unique by
-            # timestamp
-            specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
-                str(concurrency),
-                datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
+                # make directory for this specific concurrency, unique by
+                # timestamp
+                specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
+                    str(concurrency),
+                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
 
-            # run trial
-            os.makedirs(specific_logs_dir)
-            results_fpath_csv = run_single_data_point.run(config,
-                                                          specific_logs_dir,
-                                                          write_cicada_log=False)
+                # run trial
+                os.makedirs(specific_logs_dir)
+                results_fpath_csv = run_single_data_point.run(config,
+                                                              specific_logs_dir,
+                                                              write_cicada_log=False)
 
-            # gather data from this run
-            datum = {"concurrency": concurrency}
-            more_data = csv_utils.read_in_data(results_fpath_csv)
-            datum.update(*more_data)
-            data.append(datum)
-            # except BaseException as err:
-            #     print("jenndebug latency throughput move on", err)
+                # gather data from this run
+                datum = {"concurrency": concurrency}
+                more_data = csv_utils.read_in_data(results_fpath_csv)
+                datum.update(*more_data)
+                data.append(datum)
+            except BaseException as err:
+                print("jenndebug latency throughput move on", err)
 
         # find max throughput and hone in on it
         max_throughput_concurrency = \
