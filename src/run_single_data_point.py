@@ -112,7 +112,7 @@ def start_cockroach_node(node, nodelocal_dir, other_urls=[]):
     return subprocess.Popen(cmd, shell=True)
 
 
-def start_cluster(nodes, nodelocal_dir):
+def start_cluster(should_restore_data, nodes, nodelocal_dir):
     # first = nodes[0]
     # start_cockroach_node(first).wait()
 
@@ -133,11 +133,12 @@ def start_cluster(nodes, nodelocal_dir):
         process.wait()
 
     if len(nodes) > 1:
-        system_utils.call(
-            "/root/go/src/github.com/cockroachdb/cockroach/cockroach init "
-            "--insecure "
-            "--host={0}".format(nodes[0]["ip"])
-        )
+        if should_restore_data:
+            system_utils.call(
+                "/root/go/src/github.com/cockroachdb/cockroach/cockroach init "
+                "--insecure "
+                "--host={0}".format(nodes[0]["ip"])
+            )
 
 
 def set_cluster_settings(nodes, enable_crdb_replication):
@@ -347,10 +348,9 @@ def run_kv_workload(should_restore_data,
     # initialize the workload from driver node
     # for url in server_urls:
     driver_node = client_nodes[0]
-    if should_restore_data:
-        init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
-        # init_cmd = "{0} workload init kv {1}".format(EXE, url)
-        system_utils.call_remote(driver_node["ip"], init_cmd)
+    init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
+    # init_cmd = "{0} workload init kv {1}".format(EXE, url)
+    system_utils.call_remote(driver_node["ip"], init_cmd)
 
     # set database settings
     a_server_node = server_nodes[0]
@@ -818,7 +818,7 @@ def run(should_restore_data, config, log_dir, write_cicada_log=True):
     if config[
         "name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
-    start_cluster(server_nodes, nodelocal_dir)
+    start_cluster(should_restore_data, server_nodes, nodelocal_dir)
     set_cluster_settings_on_single_node(server_nodes[0],
                                         enable_crdb_replication)
 

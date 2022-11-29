@@ -14,7 +14,7 @@ def initialize_crdb(config):
     should_restore_data = True
     run_single_data_point.cleanup_previous_experiments(should_restore_data, server_nodes, [], None)
     run_single_data_point.build_cockroachdb_commit(server_nodes, commit_hash)
-    run_single_data_point.start_cluster(server_nodes, nodelocal_dir="/mydata")
+    run_single_data_point.start_cluster(True, server_nodes, nodelocal_dir="/mydata")
 
     server_node = server_nodes[0]
     run_single_data_point.set_cluster_settings([server_node],
