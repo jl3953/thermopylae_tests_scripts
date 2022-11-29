@@ -346,10 +346,11 @@ def run_kv_workload(should_restore_data,
 
     # initialize the workload from driver node
     # for url in server_urls:
-    init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
-    # init_cmd = "{0} workload init kv {1}".format(EXE, url)
     driver_node = client_nodes[0]
-    system_utils.call_remote(driver_node["ip"], init_cmd)
+    if should_restore_data:
+        init_cmd = "{0} workload init kv {1}".format(EXE, server_urls[0])
+        # init_cmd = "{0} workload init kv {1}".format(EXE, url)
+        system_utils.call_remote(driver_node["ip"], init_cmd)
 
     # set database settings
     a_server_node = server_nodes[0]
