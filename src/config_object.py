@@ -47,19 +47,19 @@ class ConfigObject:
 
         # # Replication
         self.enable_replication = [True]
-        self.tail_nodes = [[vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
-        self.log_threshold = [10]
-        self.replay_interval = [250]  # microseconds
+        self.tail_nodes = [[vars(node.Node(13, port=50051)), vars(node.Node(14, port=50051))]]
+        self.log_threshold = [5]
+        self.replay_interval = [1]  # microseconds
         self.test_mode = [False]
 
         ## benchmark
-        self.hash_randomize_keyspace = [True]
+        self.hash_randomize_keyspace = [False]
         self.enable_fixed_sized_encoding = [True]
         self.name = ["kv"]
         self.keyspace = [100000000]
         # self.concurrency = [] # to be populated
         self.read_percent = [95]  # percentage
-        self.n_keys_per_statement = [1]
+        self.n_keys_per_statement = [10]
         self.use_original_zipfian = [False]
         self.distribution_type = ["zipf"]
         self.skews = [0.01, 0.99, 1.2]
@@ -100,14 +100,14 @@ class ConfigObject:
 
             driver_node_ip_enum = config_dict["driver_node_ip_enum"]
             workload_nodes, ending_enum = ConfigObject.enumerate_workload_nodes(
-                driver_node_ip_enum, num_workload_nodes, 12
+                driver_node_ip_enum, num_workload_nodes, 12, 13, 14
             )
             config_dict["workload_nodes"] = [vars(n) for n in workload_nodes]
 
             num_warm_nodes = config_dict["num_warm_nodes"]
             starting_server_node = ending_enum + 1
             warm_nodes = ConfigObject.enumerate_warm_nodes(
-                num_warm_nodes, starting_server_node, 12
+                num_warm_nodes, starting_server_node, 12, 13, 14
             )
             config_dict["warm_nodes"] = [vars(n) for n in warm_nodes]
 
