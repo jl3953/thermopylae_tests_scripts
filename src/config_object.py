@@ -47,7 +47,8 @@ class ConfigObject:
 
         # # Replication
         self.enable_replication = [True]
-        self.tail_nodes = [[vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
+        self.tail_nodes = [
+            [vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
         self.log_threshold = [10]
         self.replay_interval = [250]  # microseconds
         self.test_mode = [False]
@@ -195,19 +196,21 @@ class ConfigObject:
         # regioned nodes
         while start_ip_enum in excluded_ip_enums:
             start_ip_enum += 1
-        regioned_nodes = [node.Node(start_ip_enum, "newyork", "/data")]
+        regioned_nodes = [node.Node(start_ip_enum, "newyork", "/data/kv-logs")]
 
         second_enum = start_ip_enum + 1
         if num_warm_nodes >= 2:
             while second_enum in excluded_ip_enums:
                 second_enum += 1
-            regioned_nodes.append(node.Node(second_enum, "london", "/data"))
+            regioned_nodes.append(
+                node.Node(second_enum, "london", "/data/kv-logs"))
 
         third_enum = second_enum + 1
         if num_warm_nodes >= 3:
             while third_enum in excluded_ip_enums:
                 third_enum += 1
-            regioned_nodes.append(node.Node(third_enum, "tokyo", "/data"))
+            regioned_nodes.append(
+                node.Node(third_enum, "tokyo", "/data/kv-logs"))
 
         # nodes that don't have regions
         remaining_nodes_start_ip = third_enum + 1
@@ -219,7 +222,7 @@ class ConfigObject:
             while (ip_enum + booster) in excluded_ip_enums:
                 booster += 1
             ip_enum += booster
-            n = node.Node(ip_enum, "singapore", "/data")
+            n = node.Node(ip_enum, "singapore", "/data/kv-logs")
             remaining_nodes.append(n)
 
         return regioned_nodes + remaining_nodes

@@ -69,7 +69,7 @@ def main():
         "warm_nodes": [
             {
                 "ip": "192.168.1.{}".format(i),
-                "store": "/data",
+                "store": "/data/kv-logs",
                 "region": "singapore",
             }
             for i in [j for j in range(1, 11)] + [j for j in range(15, 40)]],

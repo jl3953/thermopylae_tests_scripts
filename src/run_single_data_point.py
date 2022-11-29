@@ -797,7 +797,8 @@ def run(config, log_dir, write_cicada_log=True):
 
     # build and start crdb cluster
     build_cockroachdb_commit(server_nodes + client_nodes, commit_hash)
-    nodelocal_dir = "/mydata"
+    # nodelocal_dir = "/mydata"
+    nodelocal_dir = "/data"
     if config["name"] == "kv" and keyspace - min_key < populate_crdb_data.MAX_DATA_ROWS_PER_FILE:
         nodelocal_dir = "/proj/cops-PG0/workspaces/jl87/"
     start_cluster(server_nodes, nodelocal_dir)
