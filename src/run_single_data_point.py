@@ -231,7 +231,7 @@ def kill_cockroachdb_node(node):
 
     if store:
         cmd = "({0}) && {1}".format(
-            cmd, "sudo rm -rf {0}".format(os.path.join(store, "*"))
+            cmd, "sudo rm -rf {0}".format(store)
         )
 
     cmd = "ssh {0} '{1}'".format(ip, cmd)
