@@ -2,7 +2,7 @@ import shlex
 import subprocess
 
 
-def call(cmd, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT):
+def call(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
   """
   Calls a command in the shell.
 
