@@ -823,7 +823,6 @@ def run(config, log_dir, write_cicada_log=True):
             prepromote_min, prepromote_max, hot_node, hot_node_port,
             crdb_grpc_port, nodelocal_dir, discrete_warmup_and_trial,
             enable_crdb_replication, keyspace_min=min_key,
-            mode=RunMode.TRIAL_RUN_ONLY,
             hash_randomize_keyspace=hash_randomize_keyspace,
             enable_fixed_sized_encoding=enable_fixed_sized_encoding,
         )
