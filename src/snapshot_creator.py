@@ -14,7 +14,8 @@ def initialize_crdb(config):
     run_single_data_point.start_cluster(server_nodes, nodelocal_dir="/mydata")
 
     server_node = server_nodes[0]
-    run_single_data_point.set_cluster_settings([server_node])
+    run_single_data_point.set_cluster_settings([server_node],
+                                               enable_replication=False)
 
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -24,7 +25,7 @@ def initialize_crdb(config):
         system_utils.call_remote(server_node["ip"], init_cmd)
     elif config["name"] == "tpcc":
         warehouses = config["warehouses"]
-        init_cmd = "{0} workload fixtures import tpcc --warehouses {1} postgres://root@{2}:26257?sslmode=disable"\
+        init_cmd = "{0} workload fixtures import tpcc --warehouses {1} postgres://root@{2}:26257?sslmode=disable" \
             .format(EXE, warehouses, server_node["ip"])
         system_utils.call_remote(server_node["ip"], init_cmd)
 
@@ -89,7 +90,9 @@ def main():
         for j in range(first_file + 10, last_file + 1, 10):
             tic = time.perf_counter()
             idx = j - args.start
-            print("j", j, "first_file", first_file, "args.start", args.start, "j-first_file", j-first_file, "j-args.start", j-args.start)
+            print("j", j, "first_file", first_file, "args.start", args.start,
+                  "j-first_file", j - first_file, "j-args.start",
+                  j - args.start)
             print(a_server_node["ip"], data_files[idx - 10:idx])
             populate_crdb_data.import_into_crdb(
                 a_server_node["ip"], data_files[idx - 10:idx]
