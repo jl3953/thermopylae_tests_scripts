@@ -74,26 +74,25 @@ def run(config, lt_config, log_dir):
             except BaseException as err:
                 print("jenndebug latency throughput move on", err)
 
-    # find max throughput and hone in on it
-    max_throughput_concurrency = \
-        max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
-    concurrency = last_adjustments(max_throughput_concurrency)
-    start = int(concurrency - step_size)
-    end = int(concurrency + step_size)
-    step_size = int(step_size / 2)
+        # find max throughput and hone in on it
+        max_throughput_concurrency = \
+            max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
+        concurrency = last_adjustments(max_throughput_concurrency)
+        start = int(concurrency - step_size)
+        end = int(concurrency + step_size)
+        step_size = int(step_size / 2)
 
+    # checkpoint_csv_fpath, and also write out csv values every round of
+    # honing in
+    insert_csv_data(data, checkpoint_csv_fpath)
 
-# checkpoint_csv_fpath, and also write out csv values every round of
-# honing in
-insert_csv_data(data, checkpoint_csv_fpath)
+    # plot the latency throughput graphs
+    plot_utils.gnuplot(LT_GNUPLOT_EXE, checkpoint_csv_fpath,
+                       os.path.join(lt_dir, "p50_lt.png"),
+                       os.path.join(lt_dir, "p95_lt.png"),
+                       os.path.join(lt_dir, "p99_lt.png"))
 
-# plot the latency throughput graphs
-plot_utils.gnuplot(LT_GNUPLOT_EXE, checkpoint_csv_fpath,
-                   os.path.join(lt_dir, "p50_lt.png"),
-                   os.path.join(lt_dir, "p95_lt.png"),
-                   os.path.join(lt_dir, "p99_lt.png"))
-
-return checkpoint_csv_fpath
+    return checkpoint_csv_fpath
 
 
 def find_optimal_concurrency(lt_fpath_csv):
