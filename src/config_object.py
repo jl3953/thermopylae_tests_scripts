@@ -52,25 +52,26 @@ class ConfigObject:
         self.test_mode = [False]
 
         ## benchmark
-        self.hash_randomize_keyspace = [True]
-        self.enable_fixed_sized_encoding = [True]
-        self.name = ["kv"]
-        self.keyspace = [100000000]
-        # self.concurrency = [] # to be populated
-        self.read_percent = [95]  # percentage
-        self.n_keys_per_statement = [1]
-        self.use_original_zipfian = [False]
-        self.distribution_type = ["zipf"]
-        self.skews = [0.01, 0.99, 1.2]
+        # self.hash_randomize_keyspace = [True]
+        # self.enable_fixed_sized_encoding = [True]
+        # self.name = ["kv"]
+        # self.keyspace = [100000000]
+        # # self.concurrency = [] # to be populated
+        # self.read_percent = [95]  # percentage
+        # self.n_keys_per_statement = [1]
+        # self.use_original_zipfian = [False]
+        # self.distribution_type = ["zipf"]
+        # self.skews = [0.01, 0.99, 1.2]
 
-        # self.name = ["tpcc"]
-        # self.warehouses = [10]
-        # self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
-        #             "stockLevel=1"]
-        # self.init_with_fixture = [False]
-        # self.wait = [False] # whether to sprinkle in "natural" pauses,
-        #                     # like user typing or thinking
-        # self.promote_keys = [False]
+        self.name = ["tpcc"]
+        self.warehouses = [10]
+        self.mix = ["newOrder=10,payment=10,orderStatus=1,delivery=1,"
+                    "stockLevel=1"]
+        self.init_with_fixture = [False]
+        self.wait = [False] # whether to sprinkle in "natural" pauses,
+                            # like user typing or thinking
+        self.promote_keys = [False]
+
         #### notes to run tpcc
         # just comment out the hot_node for now
 

@@ -1,3 +1,5 @@
+import csv
+import datetime
 import logging
 import math
 import os
@@ -544,42 +546,114 @@ def query_table_num_from_names(names, host="localhost"):
     return mapping
 
 
-def promote_keys_in_tpcc(crdb_node, num_warehouses):
-    # populate CRDB table numbers
+def append_datetime_to_filename(csvfile):
+    unique = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    name, ext = csvfile.split(".")
+    return name + "_" + unique + "." + ext
+
+
+def write_to_csv(mapping, csvfile):
+    """Writes mapping of table name to num to csv file."""
+
+    fname = append_datetime_to_filename(csvfile)
+    with open(fname, "w", newline='\n') as csvf:
+        fieldnames = ["tablename", "tablenum"]
+        writer = csv.DictWriter(csvf, fieldnames=fieldnames)
+
+        for name, num in mapping.items():
+            writer.writerow({"tablename": name, "tablenum": num})
+
+    return fname
+
+
+def run_go_promotion_script(cicadaAddr, crdbAddrs, csvmappingfile,
+                            numWarehouses):
+    opts = ["-cicadaAddr {}".format(cicadaAddr),
+            "-crdbAddrs {}".format(",".join(crdbAddrs)),
+            "-csvmappingfile {}".format(csvmappingfile),
+            "-warehouses {}".format(numWarehouses),
+            ]
+
+    cmd = "cd /root/smdbrpc/go && " \
+          "/usr/local/go/bin/go run tpcc/*.go {}".format(" ".join(opts))
+
+    _ = system_utils.call(cmd)
+
+
+def promote_keys_in_tpcc(server_node_ip, csvmappingfile, cicadaAddr, crdbAddrs,
+                         warehouses):
+
+    cmd = "cd /root/smdbrpc && " \
+          "git stash && " \
+          "git pull origin insertWritesTpcc && " \
+          "/root/smdbrpc/generate_new_protos.sh"
+    system_utils.call(cmd)
+
+    print("Map and write table nums...")
     tableNames = ["warehouse", "stock", "item", "history", "new_order",
                   "order_line", "district", "customer", "order"]
-    mapping = query_table_num_from_names(tableNames, crdb_node["ip"])
+    mapping = query_table_num_from_names(tableNames, host=server_node_ip)
 
-    req = smdbrpc_pb2.PopulateCRDBTableNumMappingReq(
-        tableNumMappings=[], )
-    for tableName, tableNum in mapping.items():
-        req.tableNumMappings.append(
-            smdbrpc_pb2.TableNumMapping(
-                tableNum=tableNum, tableName=tableName, )
-        )
+    for name, num in mapping.items():
+        print(name, num)
 
-    # populate CRDB table numbers
-    channel = grpc.insecure_channel("{}:50055".format(crdb_node["ip"]))
-    stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
+    csvmappingfile = write_to_csv(mapping, csvmappingfile)
+    print(csvmappingfile)
 
-    _ = stub.PopulateCRDBTableNumMapping(req)
+    # cicadaAddr = "localhost:50051"
+    # crdbAddrs = ["localhost:50055"]
+    run_go_promotion_script(cicadaAddr, crdbAddrs, csvmappingfile, warehouses)
 
-    # promote warehouse
-    # this call broadcasts to all CRDB nodes
-    promotion_req = smdbrpc_pb2.TestPromoteTPCCTablesReq(
-        num_warehouses=num_warehouses, warehouse=True, district=False,
-        customer=False,
-        order=False, neworder=False, orderline=False, stock=False,
-        item=False, history=False
-    )
-    _ = stub.TestPromoteTPCCTables(promotion_req)
+
+# def promote_keys_in_tpcc(crdb_node, num_warehouses):
+#     # populate CRDB table numbers
+#     tableNames = ["warehouse", "stock", "item", "history", "new_order",
+#                   "order_line", "district", "customer", "order"]
+#     mapping = query_table_num_from_names(tableNames, crdb_node["ip"])
+#
+#     req = smdbrpc_pb2.PopulateCRDBTableNumMappingReq(
+#         tableNumMappings=[], )
+#     for tableName, tableNum in mapping.items():
+#         req.tableNumMappings.append(
+#             smdbrpc_pb2.TableNumMapping(
+#                 tableNum=tableNum, tableName=tableName, )
+#         )
+#
+#     # populate CRDB table numbers
+#     channel = grpc.insecure_channel("{}:50055".format(crdb_node["ip"]))
+#     stub = smdbrpc_pb2_grpc.HotshardGatewayStub(channel)
+#
+#     _ = stub.PopulateCRDBTableNumMapping(req)
+#
+#     # promote warehouse
+#     # this call broadcasts to all CRDB nodes
+#     promotion_req = smdbrpc_pb2.TestPromoteTPCCTablesReq(
+#         num_warehouses=num_warehouses, warehouse=True, district=False,
+#         customer=False,
+#         order=False, neworder=False, orderline=False, stock=False,
+#         item=False, history=False
+#     )
+#     _ = stub.TestPromoteTPCCTables(promotion_req)
 
 
 def run_tpcc_workload(
-        client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
-        duration, mix, discrete_warmup_and_trial, init_with_fixture, warehouses,
-        wait, promote_keys, mode=RunMode.WARMUP_AND_TRIAL_RUN,
-        enable_replication=False,
+        client_nodes,
+        server_nodes,
+        concurrency,
+        log_dir,
+        warm_up_duration,
+        duration,
+        mix,
+        discrete_warmup_and_trial,
+        init_with_fixture,
+        warehouses,
+        wait,
+        promote_keys,
+        hotnode,
+        hotnode_port,
+        server_grpc_port,
+        mode=RunMode.WARMUP_AND_TRIAL_RUN,
+        enable_replication=False, csvmappingfile=constants.SCRATCH_DIR,
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
@@ -610,7 +684,11 @@ def run_tpcc_workload(
 
     # promote keys
     if promote_keys:
-        promote_keys_in_tpcc(a_server_node, warehouses)
+        cicada_addr = "{0}:{1}".format(hotnode["ip"], hotnode_port)
+        crdb_addrs = ["{0}:{1}".format(crdb_node["ip"], server_grpc_port)
+                      for crdb_node in server_nodes]
+        promote_keys_in_tpcc(a_server_node["ip"], csvmappingfile, cicada_addr,
+                             crdb_addrs, warehouses)
 
     if (
             mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
@@ -784,12 +862,24 @@ def run(config, log_dir, write_cicada_log=True):
         mix = config["mix"]
         init_with_fixture = config["init_with_fixture"]
         wait = config["wait"]
-        promote_keys = config["promote_keys"]
+        promote_keys = config["promote_keys"] if "promote_keys" in config else False
         enable_replication = config["enable_replication"]
         bench_log_files = run_tpcc_workload(
-            client_nodes, server_nodes, concurrency, log_dir, warm_up_duration,
-            duration, mix, discrete_warmup_and_trial, init_with_fixture,
-            warehouses, wait, promote_keys,
+            client_nodes,
+            server_nodes,
+            concurrency,
+            log_dir,
+            warm_up_duration,
+            duration,
+            mix,
+            discrete_warmup_and_trial,
+            init_with_fixture,
+            warehouses,
+            wait,
+            promote_keys,
+            hot_node,
+            hot_node_port,
+            crdb_grpc_port,
             enable_replication=enable_replication,
         )
 
