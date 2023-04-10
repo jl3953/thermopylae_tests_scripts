@@ -92,7 +92,7 @@ def run_server(server_node, concurrency, num_rows_in_dbs,
 def run_backup(server_node, concurrency, base_port, next_host, next_port,
                test_mode, write_log=True,
                log_dir="/root/cicada-engine/build/logs"):
-    server_url = server_node["ip"]
+    server_url = server_node
 
     cmd = "/root/cicada-engine/build/backup {0} {1} {2} {3}".format(concurrency,
                                                                     base_port,
@@ -120,7 +120,7 @@ def run_backup(server_node, concurrency, base_port, next_host, next_port,
 
 def run_end_node(server_node, concurrency, base_port, test_mode, write_log=True,
                  log_dir="/root/cicada-engine/build/logs"):
-    server_url = server_node["ip"]
+    server_url = server_node
 
     cmd = "/root/cicada-engine/build/backup {0} {1} --endNode".format(
         concurrency, base_port)
