@@ -104,7 +104,7 @@ def main():
             } for cfg_fpath in cfg_fpath_list]
             csv_utils.append_data_to_file(data, files_to_process)
 
-        try:
+            # try:
             # file of failed configs
             failed_configs_csv = os.path.join(db_dir, "failed_configs.csv")
             f = open(
@@ -131,89 +131,89 @@ def main():
                 # generate lt_config objects that match those config objects
                 lt_cfg = config_io.read_config_from_file(lt_fpath)
 
-                try:
-                    # make directory in which trial will be run
-                    # logs_dir = generate_dir_name(
-                    #     db_dir, keys=cfg["n_keys_per_statement"],
-                    #     nodes=cfg["num_warm_nodes"], skew=cfg["skews"]
-                    # )
-                    logs_dir = generate_dir_name(
-                        db_dir, warehouses=cfg["warehouses"]
+                # try:
+                # make directory in which trial will be run
+                # logs_dir = generate_dir_name(
+                #     db_dir, keys=cfg["n_keys_per_statement"],
+                #     nodes=cfg["num_warm_nodes"], skew=cfg["skews"]
+                # )
+                logs_dir = generate_dir_name(
+                    db_dir, warehouses=cfg["warehouses"]
+                )
+                if not os.path.exists(logs_dir):
+                    os.makedirs(logs_dir)
+
+                # copy over config into directory
+                system_utils.call(
+                    "cp {0} {1}".format(
+                        cfg[constants.CONFIG_FPATH_KEY], logs_dir
                     )
-                    if not os.path.exists(logs_dir):
-                        os.makedirs(logs_dir)
+                )
 
-                    # copy over config into directory
-                    system_utils.call(
-                        "cp {0} {1}".format(
-                            cfg[constants.CONFIG_FPATH_KEY], logs_dir
-                        )
-                    )
+                if cfg["generate_latency_throughput"]:
+                    # generate latency throughput trials
+                    lt_fpath_csv = latency_throughput.run(cfg, lt_cfg,
+                                                          logs_dir)
 
-                    if cfg["generate_latency_throughput"]:
-                        # generate latency throughput trials
-                        lt_fpath_csv = latency_throughput.run(cfg, lt_cfg,
-                                                              logs_dir)
-
-                        # run trial
-                        cfg[
-                            "concurrency"] = \
-                            latency_throughput.find_optimal_concurrency(
-                                lt_fpath_csv
-                            )
-
-                    results_fpath_csv = run_single_data_point.run(cfg, logs_dir)
-
-                    # insert into sqlite db
-                    # TODO get the actual commit hash, not the branch
-                    if cfg["name"] == "kv":
-                        db.insert_csv_data_into_sqlite_table(
-                            "trials_table", results_fpath_csv, None,
-                            logs_dir=logs_dir,
-                            cockroach_commit=cfg["cockroach_commit"],
-                            server_nodes=cfg["num_warm_nodes"],
-                            disabled_cores=cfg["disable_cores"],
-                            keyspace=cfg["keyspace"],
-                            read_percent=cfg["read_percent"],
-                            n_keys_per_statement=cfg["n_keys_per_statement"],
-                            skews=cfg["skews"],
-                            prepromote_max=cfg["prepromote_max"]
-                        )
-                    elif cfg["name"] == "tpcc":
-                        db.insert_csv_data_into_sqlite_table(
-                            "trials_table", results_fpath_csv, None,
-                            logs_dir=logs_dir,
-                            cockroach_commit=cfg["cockroach_commit"],
-                            server_nodes=cfg["num_warm_nodes"],
-                            warehouses=cfg["warehouses"],
-                            mix=cfg["mix"],
-                            wait=cfg["wait"]
+                    # run trial
+                    cfg[
+                        "concurrency"] = \
+                        latency_throughput.find_optimal_concurrency(
+                            lt_fpath_csv
                         )
 
-                except BaseException as e:
-                    print(
-                        "Config {0} failed to run, continue with other"
-                        "configs.e:[{1}]".format(
-                            cfg[constants.CONFIG_FPATH_KEY], e
-                        )
+                results_fpath_csv = run_single_data_point.run(cfg, logs_dir)
+
+                # insert into sqlite db
+                # TODO get the actual commit hash, not the branch
+                if cfg["name"] == "kv":
+                    db.insert_csv_data_into_sqlite_table(
+                        "trials_table", results_fpath_csv, None,
+                        logs_dir=logs_dir,
+                        cockroach_commit=cfg["cockroach_commit"],
+                        server_nodes=cfg["num_warm_nodes"],
+                        disabled_cores=cfg["disable_cores"],
+                        keyspace=cfg["keyspace"],
+                        read_percent=cfg["read_percent"],
+                        n_keys_per_statement=cfg["n_keys_per_statement"],
+                        skews=cfg["skews"],
+                        prepromote_max=cfg["prepromote_max"]
+                    )
+                elif cfg["name"] == "tpcc":
+                    db.insert_csv_data_into_sqlite_table(
+                        "trials_table", results_fpath_csv, None,
+                        logs_dir=logs_dir,
+                        cockroach_commit=cfg["cockroach_commit"],
+                        server_nodes=cfg["num_warm_nodes"],
+                        warehouses=cfg["warehouses"],
+                        mix=cfg["mix"],
+                        wait=cfg["wait"]
                     )
 
-                    csv_utils.append_data_to_file(
-                        [{
-                            constants.CONFIG_FPATH_KEY: cfg[
-                                constants.CONFIG_FPATH_KEY],
-                            "lt_fpath": lt_fpath
-                        }], failed_configs_csv
-                    )
-                    if not args.continue_on_failure:
-                        exit(-1)
+            # except BaseException as e:
+            #     print(
+            #         "Config {0} failed to run, continue with other"
+            #         "configs.e:[{1}]".format(
+            #             cfg[constants.CONFIG_FPATH_KEY], e
+            #         )
+            #     )
+            #
+            #     csv_utils.append_data_to_file(
+            #         [{
+            #             constants.CONFIG_FPATH_KEY: cfg[
+            #                 constants.CONFIG_FPATH_KEY],
+            #             "lt_fpath": lt_fpath
+            #         }], failed_configs_csv
+            #     )
+            #     if not args.continue_on_failure:
+            #         exit(-1)
 
-            db.close()
-            mail.email_success()
+        db.close()
+        mail.email_success()
 
-        except BaseException as e:
-            mail.email_failure()
-            raise e
+    # except BaseException as e:
+    #     mail.email_failure()
+    #     raise e
 
 
 if __name__ == "__main__":
