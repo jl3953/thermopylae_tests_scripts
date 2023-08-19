@@ -653,7 +653,8 @@ def run_tpcc_workload(
         hotnode_port,
         server_grpc_port,
         mode=RunMode.WARMUP_AND_TRIAL_RUN,
-        enable_replication=False, csvmappingfile=constants.SCRATCH_DIR,
+        enable_replication=False,
+        csvmappingfile=os.path.join(constants.SCRATCH_DIR, "mapping.csv")
 ):
     server_urls = ["postgresql://root@{0}:26257?sslmode=disable".format(n["ip"])
                    for n in server_nodes]
