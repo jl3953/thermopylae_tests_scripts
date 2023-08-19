@@ -135,8 +135,8 @@ def kill(node):
         """
     ip = node["ip"]
 
-    cmd = ("PID=$(! pgrep --full cicada) "
-           "|| (sudo pkill -9 --full cicada; while ps -p $PID;do sleep 1;done;)")
+    cmd = ("PID=$(! pgrep -f cicada) "
+           "|| (sudo pkill -9 -f cicada; while ps -p $PID;do sleep 1;done;)")
 
     system_utils.call_remote(ip, cmd)
 
