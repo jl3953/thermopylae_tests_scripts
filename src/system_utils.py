@@ -12,7 +12,8 @@ def call(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
   :return: if successful, stdout stream of command.
   """
   print(cmd)
-  p = subprocess.run(cmd, stdout=stdout, stderr=stderr, shell=True, check=True, universal_newlines=True)
+  p = subprocess.run(cmd, stdout=stdout, stderr=stderr, shell=True, check=True,
+                     universal_newlines=True)
   return p.stdout
 
 
