@@ -52,9 +52,9 @@ def run(config, lt_config, log_dir):
     while step_size > 0:
         print("start", type(start), "end", type(end), "step_size",
               type(step_size))
-        concurrency_list = [i for i in range(start, end, step_size)]
-        if step_size == 1:
-            concurrency_list = [1, 2, 4, 8, 16, 32] + concurrency_list
+        # concurrency_list = [i for i in range(start, end, step_size)]
+        # if step_size == 1:
+        concurrency_list = [1, 2, 4, 8, 16, 32, 64, 128] #+ concurrency_list
         for concurrency in concurrency_list:
             try:
 
