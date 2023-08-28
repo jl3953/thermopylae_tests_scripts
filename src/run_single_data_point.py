@@ -661,6 +661,7 @@ def run_tpcc_workload(
 
     # warmup and trial run commands are the same
     args = ["--concurrency {}".format(int(concurrency)),
+            "--warehouses={}".format(int(warehouses)),
             "--mix='{}'".format(mix), "--ramp={}s".format(
             0 if discrete_warmup_and_trial else warm_up_duration
         ), "--wait={}".format(1 if wait else 0)]
