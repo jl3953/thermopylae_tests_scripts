@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 import sys
+import threading
 
 import enum
 
@@ -84,7 +85,8 @@ def start_cockroach_node(node, nodelocal_dir, other_urls=[]):
         cmd = ("{0} start --insecure "
                "--advertise-addr={1} "
                "--store={2} "
-               "--locality=region={3} "
+               #"--locality=region={3} "
+               "--locality=rack={3} "
                "--cache=.5 "
                "--max-sql-memory=.25 "
                "--log-file-verbosity=2 "
@@ -98,7 +100,8 @@ def start_cockroach_node(node, nodelocal_dir, other_urls=[]):
         cmd = ("{0} start-single-node --insecure "
                "--advertise-addr={1} "
                "--store={2} "
-               "--locality=region={3} "
+               #"--locality=region={3} "
+               "--locality=rack={3} "
                "--cache=.25 "
                "--max-sql-memory=.25 "
                "--log-file-verbosity=2 "
@@ -166,9 +169,22 @@ def setup_hotnode(
     for tail_node in tail_nodes:
         cicada_server.kill(tail_node)
 
-    cicada_server.build_server(node, commit_branch)
-    for tail_node in tail_nodes:
-        cicada_server.build_server(tail_node, commit_branch)
+    #threads = []
+    #head_t = threading.Thread(target=cicada_server.build_server, 
+    #                            args=(node, commit_branch,),
+    #                            daemon=True)
+    #head_t.start()
+    #threads.append(head_t)
+
+    #for tail_node in tail_nodes:
+    #    tail_t = threading.Thread(target=cicada_server.build_server,
+    #                            args=(tail_node, commit_branch,),
+    #                            daemon=True)
+    #    tail_t.start()
+    #    threads.append(tail_t)
+    #for t in threads:
+    #    while t.is_alive():
+    #        continue
 
     if enable_replication:
         cicada_server.run_chain_rep(node, tail_nodes, concurrency,
@@ -502,18 +518,19 @@ def run_kv_workload(
         return bench_log_files
 
 
-def init_tpcc(server_node, driver_node, init_with_fixture, warehouses):
+def init_tpcc(server_node, driver_node, init_with_fixture, warehouses, partitions):
     start = time.time()
     snapshot_name = "snapshot/tpcc{}".format(warehouses)
     populate_crdb_data.restore(server_node["ip"], snapshot_name, "tpcc")
-    # init_cmd = "{0} workload init tpcc " \
-    #            "--warehouses={1} " \
-    #            "{2}".format(EXE, warehouses, server_node)
-    # if init_with_fixture:
-    #     init_cmd = "{0} workload fixtures import tpcc " \
-    #                "--warehouses {1} " \
-    #                "{2}".format(EXE, warehouses, server_node)
-    # system_utils.call_remote(driver_node["ip"], init_cmd)
+    #init_cmd = "{0} workload init tpcc " \
+    #           "--warehouses={1} " \
+    #           "--partitions={3} ".format(EXE, warehouses, server_node["ip"], partitions)
+    #if init_with_fixture:
+    #    init_cmd = "{0} workload fixtures import tpcc " \
+    #               "{2} "\
+    #               "--warehouses {1} " \
+    #               "--partitions {3} ".format(EXE, warehouses, server_node["ip"], partitions)
+    #system_utils.call_remote(server_node["ip"], init_cmd)
 
     end = time.time()
     print(end - start)
@@ -660,8 +677,9 @@ def run_tpcc_workload(
                    for n in server_nodes]
 
     # warmup and trial run commands are the same
-    args = ["--concurrency {}".format(int(concurrency)),
+    args = ["--workers {}".format(int(concurrency)),
             "--warehouses={}".format(int(warehouses)),
+            "--client-partitions={}".format(len(server_nodes)),
             "--mix='{}'".format(mix), "--ramp={}s".format(
             0 if discrete_warmup_and_trial else warm_up_duration
         ), "--wait={}".format(1 if wait else 0)]
@@ -669,7 +687,7 @@ def run_tpcc_workload(
     # init tpcc
     a_server_node = server_nodes[0]
     driver_node = client_nodes[0]
-    init_tpcc(a_server_node, driver_node, init_with_fixture, warehouses)
+    init_tpcc(a_server_node, driver_node, init_with_fixture, warehouses, len(server_nodes))
 
     # set database settings
     settings_cmd = 'echo "alter range default configure zone using '
@@ -692,17 +710,22 @@ def run_tpcc_workload(
         promote_keys_in_tpcc(a_server_node["ip"], csvmappingfile, cicada_addr,
                              crdb_addrs, warehouses)
 
-    if (
-            mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
-            and discrete_warmup_and_trial:
+    if (mode == RunMode.WARMUP_ONLY or mode == RunMode.WARMUP_AND_TRIAL_RUN) \
+        and discrete_warmup_and_trial:
+
+        #cmd = "{0} workload run tpcc {1} {2} --duration=10s".format(EXE, server_urls[0], " ".join(args))
+        #print(cmd)
+        #individual_node_cmd = "sudo ssh {0} '{1}'".format(driver_node["ip"], cmd)
+        #p = subprocess.Popen(shlex.split(individual_node_cmd))
+        #p.wait()
 
         # run warmup
         # warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
         warmup_processes = []
         for i in range(len(client_nodes)):
             node = client_nodes[i]
-            cmd = "{0} workload run tpcc {1} {2} ".format(
-                EXE, server_urls[i % len(server_nodes)], " ".join(args)
+            cmd = "{0} workload run tpcc {1} {2} --partition-affinity {3} ".format(
+                EXE, server_urls[i % len(server_nodes)], " ".join(args), i
             )
             warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
             # for node in client_nodes:
@@ -730,8 +753,8 @@ def run_tpcc_workload(
         bench_log_files = []
         for i in range(len(client_nodes)):
             node = client_nodes[i]
-            cmd = "{0} workload run tpcc {1} {2} ".format(
-                EXE, server_urls[i % len(server_nodes)], " ".join(args)
+            cmd = "{0} workload run tpcc {1} {2} --partition-affinity {3} ".format(
+                EXE, server_urls[i % len(server_nodes)], " ".join(args), i
             )
             trial_cmd = cmd + " --duration={}s".format(duration)
             # for node in client_nodes:
@@ -857,6 +880,7 @@ def run(config, log_dir, write_cicada_log=True):
 
         # write out csv file
         results_fpath = os.path.join(log_dir, "results.csv")
+        print("run {}\n\n\n\n\n".format(results_fpath))
         _ = csv_utils.write_out_data([data], results_fpath)
 
     elif config["name"] == "tpcc":

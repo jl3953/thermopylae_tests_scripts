@@ -49,57 +49,59 @@ def run(config, lt_config, log_dir):
 
     # honing in on increasingly smaller ranges
     data = []
-    while step_size > 0:
-        print("start", type(start), "end", type(end), "step_size",
-              type(step_size))
-        # concurrency_list = [i for i in range(start, end, step_size)]
-        # if step_size == 1:
-        concurrency_list = [1, 2, 4, 8, 16, 32, 64, 128] #+ concurrency_list
-        for concurrency in concurrency_list:
-            try:
+    #while step_size > 0:
+    print("start", type(start), "end", type(end), "step_size",
+          type(step_size))
+    # concurrency_list = [i for i in range(start, end, step_size)]
+    # if step_size == 1:
+    concurrency_list = [8, 10, 12, 14, 16, 20, 24, 28, 32] #+ concurrency_list
+    #concurrency_list = [8, 16]
+    for concurrency in [8 * c for c in concurrency_list]:
+        try:
+            # run trial for this concurrency
+            config["concurrency"] = concurrency
 
-                # run trial for this concurrency
-                config["concurrency"] = concurrency
+            # make directory for this specific concurrency, unique by
+            # timestamp
+            specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
+                str(concurrency),
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
 
-                # make directory for this specific concurrency, unique by
-                # timestamp
-                specific_logs_dir = os.path.join(lt_logs_dir, "{0}_{1}".format(
-                    str(concurrency),
-                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")))
+            # run trial
+            os.makedirs(specific_logs_dir)
+            results_fpath_csv = os.path.join(specific_logs_dir, "results.csv")
+            #run_single_data_point.run(config, specific_logs_dir, True)
+            run_t = threading.Thread(target=run_single_data_point.run,
+                                          args=(config, specific_logs_dir, True))
+            run_t.start()
+            minutes = 30
+            interrupt_t = threading.Thread(target=sleep_for_a_while,
+                                           args=(minutes,),daemon=True)
+            interrupt_t.start()
+            run_t.is_alive()
 
-                # run trial
-                os.makedirs(specific_logs_dir)
-                results_fpath_csv = os.path.join(log_dir, "results.csv")
-                run_t = threading.Thread(target=run_single_data_point.run,
-                                              args=(config, specific_logs_dir, False))
-                run_t.start()
-                minutes = 30
-                interrupt_t = threading.Thread(target=sleep_for_a_while,
-                                               args=(minutes,),daemon=True)
-                interrupt_t.start()
-                run_t.is_alive()
+            while run_t.is_alive() and interrupt_t.is_alive():
+                continue
 
-                while run_t.is_alive() and interrupt_t.is_alive():
-                    continue
+            if not interrupt_t.is_alive():
+                raise RuntimeError("lt run took more than {0} mins, move on".format(minutes))
 
-                if not interrupt_t.is_alive():
-                    raise RuntimeError("lt run took more than {0} mins, move on".format(minutes))
+            # gather data from this run
+            datum = {"concurrency": concurrency}
+            more_data = csv_utils.read_in_data(results_fpath_csv)
+            datum.update(*more_data)
+            data.append(datum)
+            print(results_fpath_csv, more_data, data)
+        except BaseException as err:
+            print("jenndebug latency throughput move on", err)
 
-                # gather data from this run
-                datum = {"concurrency": concurrency}
-                more_data = csv_utils.read_in_data(results_fpath_csv)
-                datum.update(*more_data)
-                data.append(datum)
-            except BaseException as err:
-                print("jenndebug latency throughput move on", err)
-
-        # find max throughput and hone in on it
-        max_throughput_concurrency = \
-            max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
-        concurrency = last_adjustments(max_throughput_concurrency)
-        start = int(concurrency - step_size)
-        end = int(concurrency + step_size)
-        step_size = int(step_size / 2)
+        ## find max throughput and hone in on it
+        #max_throughput_concurrency = \
+        #    max(data, key=operator.itemgetter("ops/sec(cum)-newOrder"))["concurrency"]
+        #concurrency = last_adjustments(max_throughput_concurrency)
+        #start = int(concurrency - step_size)
+        #end = int(concurrency + step_size)
+        #step_size = int(step_size / 2)
 
     # checkpoint_csv_fpath, and also write out csv values every round of
     # honing in
@@ -117,7 +119,7 @@ def run(config, lt_config, log_dir):
 def find_optimal_concurrency(lt_fpath_csv):
     data = csv_utils.read_in_data(lt_fpath_csv)
     max_throughput_concurrency = \
-        max(data, key=operator.itemgetter("ops/sec(cum)"))["concurrency"]
+        max(data, key=operator.itemgetter("ops/sec(cum)-newOrder"))["concurrency"]
     return int(last_adjustments(max_throughput_concurrency))
 
 

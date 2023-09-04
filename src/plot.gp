@@ -9,7 +9,7 @@ set xlabel "zipfian s"
 set ylabel "throughput (tps)"
 set title "Throughput v skew"
 set output ARG3
-plot ARG1 using "skews":"ops/sec(cum)" with linespoint notitle
+plot ARG1 using "skews":"ops/sec(cum)-newOrder" with linespoint notitle
 
 set ylabel "p50 (ms)"
 set title "p50 latency v skew"

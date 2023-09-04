@@ -11,9 +11,9 @@ class Node:
 
         self.ip = "192.168.1." + str(ip_enum)
         self.port = port
-        if region:
+        if region is not None:
             self.region = region
-        if store:
+        if store is not None:
             self.store = store
 
     def __str__(self):
