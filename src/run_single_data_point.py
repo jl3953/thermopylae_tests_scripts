@@ -679,7 +679,7 @@ def run_tpcc_workload(
     # warmup and trial run commands are the same
     args = ["--workers {}".format(int(concurrency)),
             "--warehouses={}".format(int(warehouses)),
-            "--client-partitions={}".format(len(server_nodes)),
+            "--client-partitions={}".format(min(len(server_nodes), int(warehouses))),
             "--mix='{}'".format(mix), "--ramp={}s".format(
             0 if discrete_warmup_and_trial else warm_up_duration
         ), "--wait={}".format(1 if wait else 0)]
@@ -725,7 +725,7 @@ def run_tpcc_workload(
         for i in range(len(client_nodes)):
             node = client_nodes[i]
             cmd = "{0} workload run tpcc {1} {2} --partition-affinity {3} ".format(
-                EXE, server_urls[i % len(server_nodes)], " ".join(args), i
+                EXE, server_urls[i % len(server_nodes)], " ".join(args), i % min(len(server_nodes), int(warehouses))
             )
             warmup_cmd = cmd + " --duration={}s".format(warm_up_duration)
             # for node in client_nodes:
@@ -754,7 +754,7 @@ def run_tpcc_workload(
         for i in range(len(client_nodes)):
             node = client_nodes[i]
             cmd = "{0} workload run tpcc {1} {2} --partition-affinity {3} ".format(
-                EXE, server_urls[i % len(server_nodes)], " ".join(args), i
+                EXE, server_urls[i % len(server_nodes)], " ".join(args), i % min(len(server_nodes), int(warehouses))
             )
             trial_cmd = cmd + " --duration={}s".format(duration)
             # for node in client_nodes:

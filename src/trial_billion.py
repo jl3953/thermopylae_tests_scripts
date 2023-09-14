@@ -22,8 +22,8 @@ class ConfigObject:
 
         # cluster
         self.cockroach_commit = ["insertWritesTpccTemp"]
-        self.num_warm_nodes = [7]
-        self.num_workload_nodes = [7]
+        self.num_warm_nodes = [8]
+        self.num_workload_nodes = [8]
         self.driver_node_ip_enum = [1]
         self.generate_latency_throughput = [True]
         self.warm_nodes_eq_workload_nodes = [True]
@@ -31,7 +31,7 @@ class ConfigObject:
 
         # self.workload_nodes = [] # to be populated
         # self.warm_nodes = [] # to be populated
-        #self.hot_node = [vars(node.Node(12))]  # 192.168.1.?? of hotnode
+        self.hot_node = [vars(node.Node(12))]  # 192.168.1.?? of hotnode
         self.hot_node_port = [50051]
         self.hot_node_commit_branch = ["insertWritesTpcc"]
         self.hot_node_concurrency = [15]
@@ -45,7 +45,7 @@ class ConfigObject:
         self.duration = [60]  # in seconds
 
         # # Replication
-        self.enable_replication = [True]
+        self.enable_replication = [False]
         self.tail_nodes = [[vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
         self.log_threshold = [1, 2, 5]
         self.replay_interval = [250]  # microseconds
@@ -64,12 +64,12 @@ class ConfigObject:
         # self.skews = [0.01, 0.99, 1.2]
 
         self.name = ["tpcc"]
-        self.warehouses = [16]
+        self.warehouses = [64, 128]
         self.mix = ["newOrder=1"]
         self.init_with_fixture = [False]
         self.wait = [False] # whether to sprinkle in "natural" pauses,
                             # like user typing or thinking
-        self.promote_keys = [False]
+        self.promote_keys = [True]
 
         #### notes to run tpcc
         # just comment out the hot_node for now

@@ -54,7 +54,7 @@ def run(config, lt_config, log_dir):
           type(step_size))
     # concurrency_list = [i for i in range(start, end, step_size)]
     # if step_size == 1:
-    concurrency_list = [8, 10, 12, 14, 16, 20, 24, 28, 32] #+ concurrency_list
+    concurrency_list = [16, 20, 24, 28, 32, 64, 80, 96, 112, 128] #+ concurrency_list
     #concurrency_list = [8, 16]
     for concurrency in [8 * c for c in concurrency_list]:
         try:
