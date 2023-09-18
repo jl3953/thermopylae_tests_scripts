@@ -37,7 +37,7 @@ class ConfigObject:
         self.hot_node_concurrency = [15]
         self.crdb_grpc_port = [50055]
         self.prepromote_min = [0]
-        self.prepromote_max = [40000000]
+        self.prepromote_max = [0, 25000]
         self.hot_key_threshold = [-1]
         self.should_create_partition = [False]
         self.disable_cores = [0]
@@ -45,33 +45,33 @@ class ConfigObject:
         self.duration = [60]  # in seconds
 
         # # Replication
-        self.enable_replication = [False]
+        self.enable_replication = [True]
         self.tail_nodes = [[vars(node.Node(13, port=60061)), vars(node.Node(14, port=70071))]]
-        self.log_threshold = [1, 2, 5]
-        self.replay_interval = [250]  # microseconds
+        self.log_threshold = [1]
+        self.replay_interval = [1]  # microseconds
         self.test_mode = [False]
 
-        ## benchmark
-        # self.hash_randomize_keyspace = [True]
-        # self.enable_fixed_sized_encoding = [True]
-        # self.name = ["kv"]
-        # self.keyspace = [100000000]
-        # # self.concurrency = [] # to be populated
-        # self.read_percent = [95]  # percentage
-        # self.n_keys_per_statement = [1]
-        # self.use_original_zipfian = [False]
-        # self.distribution_type = ["zipf"]
-        # self.skews = [0.01, 0.99, 1.2]
+        # benchmark
+        #self.hash_randomize_keyspace = [False]
+        #self.enable_fixed_sized_encoding = [True]
+        #self.name = ["kv"]
+        #self.keyspace = [999999]
+        ## self.concurrency = [] # to be populated
+        #self.read_percent = [95]  # percentage
+        #self.n_keys_per_statement = [10]
+        #self.use_original_zipfian = [False]
+        #self.distribution_type = ["zipf"]
+        #self.skews = [0.99, 1.2]
 
         self.name = ["tpcc"]
-        self.warehouses = [64, 128]
+        self.warehouses = [8, 16, 64]
         self.mix = ["newOrder=1"]
         self.init_with_fixture = [False]
         self.wait = [False] # whether to sprinkle in "natural" pauses,
                             # like user typing or thinking
         self.promote_keys = [True]
 
-        #### notes to run tpcc
+        ### notes to run tpcc
         # just comment out the hot_node for now
 
     def generate_config_combinations(self):

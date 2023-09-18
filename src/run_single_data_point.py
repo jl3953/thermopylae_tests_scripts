@@ -169,22 +169,22 @@ def setup_hotnode(
     for tail_node in tail_nodes:
         cicada_server.kill(tail_node)
 
-    #threads = []
-    #head_t = threading.Thread(target=cicada_server.build_server, 
-    #                            args=(node, commit_branch,),
-    #                            daemon=True)
-    #head_t.start()
-    #threads.append(head_t)
+    threads = []
+    head_t = threading.Thread(target=cicada_server.build_server, 
+                                args=(node, commit_branch,),
+                                daemon=True)
+    head_t.start()
+    threads.append(head_t)
 
-    #for tail_node in tail_nodes:
-    #    tail_t = threading.Thread(target=cicada_server.build_server,
-    #                            args=(tail_node, commit_branch,),
-    #                            daemon=True)
-    #    tail_t.start()
-    #    threads.append(tail_t)
-    #for t in threads:
-    #    while t.is_alive():
-    #        continue
+    for tail_node in tail_nodes:
+        tail_t = threading.Thread(target=cicada_server.build_server,
+                                args=(tail_node, commit_branch,),
+                                daemon=True)
+        tail_t.start()
+        threads.append(tail_t)
+    for t in threads:
+        while t.is_alive():
+            continue
 
     if enable_replication:
         cicada_server.run_chain_rep(node, tail_nodes, concurrency,
@@ -317,7 +317,7 @@ def run_kv_workload(
         prepromote_min,
         prepromote_max, hot_node, hot_node_port, crdb_grpc_port, nodelocal_dir,
         discrete_warmup_and_trial, keyspace_min=0,
-        mode=RunMode.WARMUP_AND_TRIAL_RUN, hash_randomize_keyspace=True,
+        mode=RunMode.TRIAL_RUN_ONLY, hash_randomize_keyspace=True,
         enable_fixed_sized_encoding=True,
         enable_replication=False,
 ):
